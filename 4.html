@@ -1,0 +1,2780 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong - MKGAMES</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHJlY3Qgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiByeD0iMiIgZmlsbD0iIzAzMDAxNCIvPgogIDxwYXRoIGQ9Ik0zIDMgTCA3IDMgTCA3IDcgTCAxMSAzIEwgMTMgMyBMIDEzIDEzIEwgOSAxMyBMIDkgOSBMIDUgMTMgTCAzIDEzIFoiIGZpbGw9IiMwMGYzZmYiIHN0cm9rZT0iI2Y3MDBmZiIgc3Ryb2tlLXdpZHRoPSIwLjUiPgogICAgPGFuaW1hdGUgYXR0cmlidXRlTmFtZT0iZmlsbCIgdmFsdWVzPSIjMDBmM2ZmOyNmNzAwZmY7IzAwZjNmZiIgZHVyPSIzcyIgcmVwZWF0Q291bnQ9ImluZGVmaW5pdGUiIC8+CiAgPC9wYXRoPgo8L3N2Zz4=" type="image/svg+xml">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #00f3ff;
+            --secondary: #f700ff;
+            --accent: #ffdd00;
+            --bg-dark: #030014;
+            --bg-card: rgba(13, 6, 31, 0.7);
+            --text: #ffffff;
+            --glow-strong: 0 0 10px rgba(0, 243, 255, 0.8), 0 0 20px rgba(0, 243, 255, 0.4);
+            --glow-soft: 0 0 15px rgba(247, 0, 255, 0.4);
+            --paddle-p1: #00f3ff;
+            --paddle-p2: #f700ff;
+            --ball: #ffffff;
+            --powerup-speed: #ffdd00;
+            --powerup-size: #00ff00;
+            --powerup-multi: #ff00ff;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text);
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+            padding-bottom: 80px;
+        }
+        
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        header {
+            padding: 1.5rem 2rem;
+            position: relative;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+            text-align: center;
+        }
+        
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-align: center;
+            letter-spacing: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: var(--glow-soft);
+            margin-bottom: 0.5rem;
+            position: relative;
+            animation: pulse 2s infinite alternate;
+        }
+        
+        .logo::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), var(--secondary), transparent);
+        }
+        
+        .tagline {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            opacity: 0.8;
+        }
+        
+        main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            z-index: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        /* Menu principal */
+        .menu-container {
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            padding: 2rem;
+            background: rgba(13, 6, 31, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            margin: 0 auto;
+            transition: all 0.5s;
+        }
+        
+        .menu-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            color: var(--primary);
+            text-shadow: var(--glow-soft);
+        }
+        
+        .menu-subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.8;
+        }
+        
+        .menu-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .mode-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .style-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .level-btn, .mode-btn, .style-btn, .start-btn, .back-btn {
+            background: linear-gradient(90deg, rgba(0, 243, 255, 0.1), rgba(247, 0, 255, 0.1));
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            color: var(--text);
+            padding: 1rem 1.5rem;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .level-btn:hover, .mode-btn:hover, .style-btn:hover, .start-btn:hover, .back-btn:hover {
+            background: linear-gradient(90deg, rgba(0, 243, 255, 0.3), rgba(247, 0, 255, 0.3));
+            box-shadow: var(--glow-soft);
+            transform: translateY(-2px);
+        }
+        
+        .level-btn:active, .mode-btn:active, .style-btn:active, .start-btn:active, .back-btn:active {
+            transform: translateY(1px);
+        }
+        
+        .level-btn::before, .mode-btn::before, .style-btn::before, .start-btn::before, .back-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: all 0.5s;
+        }
+        
+        .level-btn:hover::before, .mode-btn:hover::before, .style-btn:hover::before, .start-btn:hover::before, .back-btn:hover::before {
+            left: 100%;
+        }
+        
+        .level-btn.active, .mode-btn.active, .style-btn.active {
+            background: linear-gradient(90deg, rgba(0, 243, 255, 0.4), rgba(247, 0, 255, 0.4));
+            box-shadow: var(--glow-soft);
+        }
+        
+        .level-desc, .mode-desc {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        
+        .level-icon, .mode-icon, .style-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+            text-shadow: var(--glow-soft);
+        }
+        
+        .start-btn {
+            background: linear-gradient(90deg, rgba(0, 243, 255, 0.5), rgba(247, 0, 255, 0.5));
+            border: none;
+            color: var(--bg-dark);
+            font-weight: 700;
+            box-shadow: var(--glow-soft);
+            width: 200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+        }
+        
+        .start-btn:hover {
+            background: linear-gradient(90deg, rgba(0, 243, 255, 0.8), rgba(247, 0, 255, 0.8));
+            box-shadow: var(--glow-strong);
+        }
+        
+        .back-btn {
+            width: 200px;
+            margin: 0 auto;
+            margin-top: 1rem;
+        }
+        
+        /* Área de jogo */
+        .game-container {
+            display: none;
+            width: 100%;
+            max-width: 1200px;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: rgba(13, 6, 31, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .game-info {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        
+        .info-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(0, 243, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            min-width: 80px;
+        }
+        
+        .info-label {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        
+        .info-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .game-controls {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .control-btn {
+            background: rgba(0, 243, 255, 0.2);
+            border: 1px solid rgba(0, 243, 255, 0.4);
+            color: var(--text);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .control-btn:hover {
+            background: rgba(0, 243, 255, 0.4);
+            box-shadow: var(--glow-soft);
+        }
+        
+        /* Campo de jogo */
+        #game-board {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            aspect-ratio: 16 / 9;
+            background: rgba(13, 6, 31, 0.8);
+            border: 2px solid var(--primary);
+            border-radius: 10px;
+            box-shadow: var(--glow-soft), inset 0 0 20px rgba(0, 243, 255, 0.2);
+            overflow: hidden;
+        }
+        
+        #game-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .countdown {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 5rem;
+            color: var(--text);
+            text-shadow: 0 0 20px var(--primary);
+            z-index: 5;
+            opacity: 0;
+        }
+        
+        .countdown.active {
+            animation: countdownAnim 1s forwards;
+        }
+        
+        @keyframes countdownAnim {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(2);
+            }
+            20% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            80% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+        }
+        
+        /* Controles móveis */
+        .mobile-controls {
+            display: none;
+            width: 100%;
+            max-width: 800px;
+            margin-top: 2rem;
+            justify-content: space-between;
+        }
+        
+        .player-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .control-label {
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .player2-controls .control-label {
+            color: var(--secondary);
+        }
+        
+        .paddle-btn {
+            background: rgba(0, 243, 255, 0.2);
+            border: 1px solid rgba(0, 243, 255, 0.4);
+            color: var(--text);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .paddle-btn:active {
+            background: rgba(0, 243, 255, 0.4);
+            box-shadow: var(--glow-soft);
+        }
+        
+        .player2-controls .paddle-btn {
+            background: rgba(247, 0, 255, 0.2);
+            border: 1px solid rgba(247, 0, 255, 0.4);
+        }
+        
+        .player2-controls .paddle-btn:active {
+            background: rgba(247, 0, 255, 0.4);
+            box-shadow: 0 0 15px rgba(247, 0, 255, 0.4);
+        }
+        
+        /* Power-up status */
+        .powerup-status {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 243, 255, 0.2);
+            border: 1px solid rgba(0, 243, 255, 0.5);
+            border-radius: 5px;
+            padding: 5px 10px;
+            font-size: 0.9rem;
+            display: none;
+            animation: pulse 1s infinite alternate;
+        }
+        
+        .powerup-status.player2 {
+            left: auto;
+            right: 10px;
+            background: rgba(247, 0, 255, 0.2);
+            border: 1px solid rgba(247, 0, 255, 0.5);
+        }
+        
+        .powerup-status.active {
+            display: block;
+        }
+        
+        /* Power-up Effects */
+        .powerup-effect {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .powerup-effect.active {
+            opacity: 0.3;
+        }
+        
+        .speed-effect {
+            background: radial-gradient(circle, transparent 80%, var(--powerup-speed));
+        }
+        
+        .size-effect {
+            background: radial-gradient(circle, transparent 80%, var(--powerup-size));
+        }
+        
+        .multi-effect {
+            background: radial-gradient(circle, transparent 80%, var(--powerup-multi));
+        }
+        
+        /* Game Over e Match Complete */
+        .result-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(3, 0, 20, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .result-box {
+            background: rgba(13, 6, 31, 0.9);
+            padding: 2rem;
+            border-radius: 20px;
+            border: 2px solid var(--primary);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: var(--glow-strong);
+            animation: result-appear 0.5s forwards;
+            transform: scale(0.8);
+            opacity: 0;
+        }
+        
+        @keyframes result-appear {
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .result-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: var(--glow-soft);
+        }
+        
+        .match-score {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+        }
+        
+        .player-score {
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary);
+        }
+        
+        .player2-score {
+            color: var(--secondary);
+            text-shadow: 0 0 10px var(--secondary);
+        }
+        
+        .score-divider {
+            color: var(--text);
+            font-size: 2rem;
+        }
+        
+        .result-message {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        
+        .stat-box {
+            background: rgba(0, 243, 255, 0.1);
+            padding: 0.5rem;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        
+        .stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .result-btns {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+        
+        .result-btn {
+            background: linear-gradient(90deg, rgba(0, 243, 255, 0.3), rgba(247, 0, 255, 0.3));
+            border: 1px solid rgba(0, 243, 255, 0.5);
+            color: var(--text);
+            padding: 0.7rem 1.3rem;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 120px;
+        }
+        
+        .result-btn:hover {
+            background: linear-gradient(90deg, rgba(0, 243, 255, 0.6), rgba(247, 0, 255, 0.6));
+            box-shadow: var(--glow-soft);
+        }
+        
+        /* High Scores */
+        .high-scores {
+            display: none;
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            padding: 2rem;
+            background: rgba(13, 6, 31, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            margin: 0 auto;
+            transition: all 0.5s;
+        }
+        
+        .scores-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            color: var(--primary);
+            text-shadow: var(--glow-soft);
+        }
+        
+        .scores-list {
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+        
+        .scores-header {
+            display: grid;
+            grid-template-columns: 50px 1fr 100px 100px 100px;
+            padding: 0.5rem;
+            background: rgba(0, 243, 255, 0.2);
+            border-radius: 8px 8px 0 0;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .score-item {
+            display: grid;
+            grid-template-columns: 50px 1fr 100px 100px 100px;
+            padding: 0.5rem;
+            background: rgba(0, 243, 255, 0.1);
+            margin-bottom: 0.5rem;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+        
+        .score-item:hover {
+            background: rgba(0, 243, 255, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .score-rank {
+            font-weight: bold;
+        }
+        
+        .score-mode {
+            text-align: left;
+        }
+        
+        .score-score, .score-rallies, .score-time {
+            text-align: center;
+        }
+        
+        /* Instruções */
+        .instructions {
+            display: none;
+            width: 100%;
+            max-width: 800px;
+            padding: 2rem;
+            background: rgba(13, 6, 31, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            margin: 0 auto;
+            transition: all 0.5s;
+        }
+        
+        .instructions-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            text-shadow: var(--glow-soft);
+            text-align: center;
+        }
+        
+        .instructions-content {
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .instructions-section {
+            margin-bottom: 1.5rem;
+        }
+        
+        .instructions-section h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+        
+        .item-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .item-box {
+            background: rgba(0, 243, 255, 0.1);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .item-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+        
+        .item-icon.speed {
+            background-color: var(--powerup-speed);
+            box-shadow: 0 0 5px var(--powerup-speed);
+        }
+        
+        .item-icon.size {
+            background-color: var(--powerup-size);
+            box-shadow: 0 0 5px var(--powerup-size);
+        }
+        
+        .item-icon.multi {
+            background-color: var(--powerup-multi);
+            box-shadow: 0 0 5px var(--powerup-multi);
+        }
+        
+        .key-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        
+        .key {
+            background: rgba(0, 243, 255, 0.2);
+            border: 1px solid rgba(0, 243, 255, 0.4);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            min-width: 50px;
+            text-align: center;
+            box-shadow: 0 0 5px rgba(0, 243, 255, 0.3);
+        }
+        
+        .key.player2 {
+            background: rgba(247, 0, 255, 0.2);
+            border: 1px solid rgba(247, 0, 255, 0.4);
+            box-shadow: 0 0 5px rgba(247, 0, 255, 0.3);
+        }
+        
+        /* Pausa */
+        .pause-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(3, 0, 20, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .pause-box {
+            background: rgba(13, 6, 31, 0.9);
+            padding: 2rem;
+            border-radius: 20px;
+            border: 2px solid var(--primary);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: var(--glow-strong);
+        }
+        
+        .pause-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: var(--glow-soft);
+        }
+        
+        .pause-btns {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .pause-btn {
+            background: linear-gradient(90deg, rgba(0, 243, 255, 0.3), rgba(247, 0, 255, 0.3));
+            border: 1px solid rgba(0, 243, 255, 0.5);
+            color: var(--text);
+            padding: 0.7rem 1.3rem;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .pause-btn:hover {
+            background: linear-gradient(90deg, rgba(0, 243, 255, 0.6), rgba(247, 0, 255, 0.6));
+            box-shadow: var(--glow-soft);
+        }
+        
+        .pause-btn i {
+            font-size: 1.2rem;
+        }
+        
+        /* Animações e efeitos */
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1.1);
+                opacity: 1;
+            }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s forwards;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .flash {
+            animation: flash 0.5s;
+        }
+        
+        @keyframes flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .shake {
+            animation: shake 0.5s;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        
+        /* Rodapé */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            backdrop-filter: blur(5px);
+            background-color: rgba(3, 0, 20, 0.5);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+        }
+        
+        .signature {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+            position: relative;
+        }
+        
+        .signature::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+        
+        .home-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 243, 255, 0.1);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            color: var(--text);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 50;
+        }
+        
+        .home-btn:hover {
+            background: rgba(0, 243, 255, 0.3);
+            transform: rotate(360deg);
+        }
+        
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 2rem;
+            }
+            
+            main {
+                padding: 1rem;
+            }
+            
+            .game-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .game-info {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .menu-options, .mode-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .mobile-controls {
+                display: flex;
+            }
+            
+            .scores-header, .score-item {
+                grid-template-columns: 30px 1fr 60px 60px 60px;
+                font-size: 0.9rem;
+            }
+            
+            .result-btns {
+                flex-direction: column;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .logo {
+                font-size: 1.5rem;
+            }
+            
+            .game-info {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+            
+            .info-box {
+                padding: 0.3rem 0.5rem;
+                min-width: 70px;
+            }
+            
+            .info-value {
+                font-size: 1rem;
+            }
+            
+            .scores-header, .score-item {
+                grid-template-columns: 20px 1fr 40px 40px 40px;
+                font-size: 0.8rem;
+                padding: 0.3rem;
+            }
+            
+            .paddle-btn {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    
+    <a href="index.html" class="home-btn" title="Voltar ao Portal">
+        <i class="fas fa-home"></i>
+    </a>
+    
+    <header>
+        <h1 class="logo">PONG</h1>
+        <p class="tagline">MKGAMES - Versão Futurista</p>
+    </header>
+    
+    <main>
+        <!-- Menu Principal -->
+        <div class="menu-container" id="main-menu">
+            <h2 class="menu-title">Escolha o Modo de Jogo</h2>
+            
+            <div class="mode-options">
+                <button class="mode-btn active" data-mode="classic">
+                    <i class="mode-icon fas fa-history"></i>
+                    <span>Clássico</span>
+                    <span class="mode-desc">Jogo tradicional</span>
+                </button>
+                
+                <button class="mode-btn" data-mode="modern">
+                    <i class="mode-icon fas fa-bolt"></i>
+                    <span>Moderno</span>
+                    <span class="mode-desc">Com power-ups</span>
+                </button>
+                
+                <button class="mode-btn" data-mode="time-attack">
+                    <i class="mode-icon fas fa-stopwatch"></i>
+                    <span>Contra o Tempo</span>
+                    <span class="mode-desc">Tempo limitado</span>
+                </button>
+                
+                <button class="mode-btn" data-mode="chaos">
+                    <i class="mode-icon fas fa-radiation"></i>
+                    <span>Caos</span>
+                    <span class="mode-desc">Múltiplas bolas</span>
+                </button>
+            </div>
+            
+            <h2 class="menu-title">Número de Jogadores</h2>
+            
+            <div class="menu-options">
+                <button class="level-btn active" data-players="1">
+                    <i class="level-icon fas fa-user"></i>
+                    <span>Um Jogador</span>
+                    <span class="level-desc">Contra IA</span>
+                </button>
+                
+                <button class="level-btn" data-players="2">
+                    <i class="level-icon fas fa-user-friends"></i>
+                    <span>Dois Jogadores</span>
+                    <span class="level-desc">Versus local</span>
+                </button>
+            </div>
+            
+            <h2 class="menu-title">Dificuldade (IA)</h2>
+            
+            <div class="menu-options difficulty-options">
+                <button class="level-btn active" data-level="easy">
+                    <i class="level-icon fas fa-child"></i>
+                    <span>Fácil</span>
+                    <span class="level-desc">IA básica</span>
+                </button>
+                
+                <button class="level-btn" data-level="medium">
+                    <i class="level-icon fas fa-user"></i>
+                    <span>Médio</span>
+                    <span class="level-desc">IA mais esperta</span>
+                </button>
+                
+                <button class="level-btn" data-level="hard">
+                    <i class="level-icon fas fa-user-graduate"></i>
+                    <span>Difícil</span>
+                    <span class="level-desc">IA desafiadora</span>
+                </button>
+                
+                <button class="level-btn" data-level="impossible">
+                    <i class="level-icon fas fa-robot"></i>
+                    <span>Impossível</span>
+                    <span class="level-desc">IA perfeita</span>
+                </button>
+            </div>
+            
+            <h2 class="menu-title">Estilo Visual</h2>
+            
+            <div class="style-options">
+                <button class="style-btn active" data-style="neon">
+                    <i class="style-icon fas fa-lightbulb"></i>
+                    <span>Neon</span>
+                </button>
+                
+                <button class="style-btn" data-style="retro">
+                    <i class="style-icon fas fa-gamepad"></i>
+                    <span>Retrô</span>
+                </button>
+                
+                <button class="style-btn" data-style="minimalist">
+                    <i class="style-icon fas fa-minus"></i>
+                    <span>Minimalista</span>
+                </button>
+                
+                <button class="style-btn" data-style="cyber">
+                    <i class="style-icon fas fa-network-wired"></i>
+                    <span>Cyber</span>
+                </button>
+            </div>
+            
+            <button class="start-btn" id="start-game-btn">
+                <i class="fas fa-play"></i> Iniciar Jogo
+            </button>
+            
+            <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem;">
+                <button class="back-btn" id="show-scores-btn">
+                    <i class="fas fa-trophy"></i> Pontuações
+                </button>
+                
+                <button class="back-btn" id="show-instructions-btn">
+                    <i class="fas fa-question-circle"></i> Instruções
+                </button>
+            </div>
+        </div>
+        
+        <!-- Área de Jogo -->
+        <div class="game-container" id="game-area">
+            <div class="game-header">
+                <div class="game-info">
+                    <div class="info-box">
+                        <span class="info-label">Jogador 1</span>
+                        <span class="info-value" id="p1-score">0</span>
+                    </div>
+                    
+                    <div class="info-box">
+                        <span class="info-label">Rallies</span>
+                        <span class="info-value" id="rallies-value">0</span>
+                    </div>
+                    
+                    <div class="info-box">
+                        <span class="info-label">Jogador 2</span>
+                        <span class="info-value" id="p2-score">0</span>
+                    </div>
+                </div>
+                
+                <div class="game-controls">
+                    <button class="control-btn" id="pause-btn" title="Pausar Jogo">
+                        <i class="fas fa-pause"></i>
+                    </button>
+                    
+                    <button class="control-btn" id="restart-btn" title="Reiniciar Jogo">
+                        <i class="fas fa-redo-alt"></i>
+                    </button>
+                    
+                    <button class="control-btn" id="exit-btn" title="Sair do Jogo">
+                        <i class="fas fa-door-open"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="game-board">
+                <canvas id="game-canvas"></canvas>
+                <div class="countdown" id="countdown">3</div>
+                <div class="powerup-status" id="p1-powerup">Velocidade: 5s</div>
+                <div class="powerup-status player2" id="p2-powerup">Tamanho: 5s</div>
+                <div class="powerup-effect speed-effect" id="speed-effect"></div>
+                <div class="powerup-effect size-effect" id="size-effect"></div>
+                <div class="powerup-effect multi-effect" id="multi-effect"></div>
+            </div>
+            
+            <div class="mobile-controls" id="mobile-controls">
+                <div class="player-controls player1-controls">
+                    <div class="control-label">Jogador 1</div>
+                    <button class="paddle-btn" id="p1-up-btn">
+                        <i class="fas fa-chevron-up"></i>
+                    </button>
+                    <button class="paddle-btn" id="p1-down-btn">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+                
+                <div class="player-controls player2-controls">
+                    <div class="control-label">Jogador 2</div>
+                    <button class="paddle-btn" id="p2-up-btn">
+                        <i class="fas fa-chevron-up"></i>
+                    </button>
+                    <button class="paddle-btn" id="p2-down-btn">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- High Scores -->
+        <div class="high-scores" id="high-scores">
+            <h2 class="scores-title">Melhores Pontuações</h2>
+            
+            <div class="scores-list">
+                <div class="scores-header">
+                    <div>#</div>
+                    <div>Modo</div>
+                    <div>Pontos</div>
+                    <div>Rallies</div>
+                    <div>Tempo</div>
+                </div>
+                
+                <div id="scores-container">
+                    <!-- High scores will be generated here -->
+                </div>
+            </div>
+            
+            <button class="back-btn" id="back-to-menu-btn">
+                <i class="fas fa-arrow-left"></i> Voltar ao Menu
+            </button>
+        </div>
+        
+        <!-- Instruções -->
+        <div class="instructions" id="instructions">
+            <h2 class="instructions-title">Como Jogar</h2>
+            
+            <div class="instructions-content">
+                <div class="instructions-section">
+                    <h3>Controles</h3>
+                    <p>Jogador 1 (Azul): Use as teclas W e S para mover o paddle para cima e para baixo.</p>
+                    <p>Jogador 2 (Rosa): Use as teclas de seta para cima e para baixo.</p>
+                    <p>Em dispositivos móveis, use os botões direcionais na tela.</p>
+                    
+                    <div class="key-controls">
+                        <div class="key">W</div>
+                        <div class="key">S</div>
+                    </div>
+                    
+                    <div class="key-controls">
+                        <div class="key player2">↑</div>
+                        <div class="key player2">↓</div>
+                    </div>
+                </div>
+                
+                <div class="instructions-section">
+                    <h3>Modos de Jogo</h3>
+                    <ul>
+                        <li><strong>Clássico:</strong> O Pong tradicional - rebata a bola e marque pontos</li>
+                        <li><strong>Moderno:</strong> Inclui power-ups que podem ajudar ou atrapalhar</li>
+                        <li><strong>Contra o Tempo:</strong> Marque o máximo de pontos no tempo disponível</li>
+                        <li><strong>Caos:</strong> Várias bolas ao mesmo tempo!</li>
+                    </ul>
+                </div>
+                
+                <div class="instructions-section">
+                    <h3>Power-ups</h3>
+                    <p>No modo Moderno, power-ups aparecerão ocasionalmente:</p>
+                    
+                    <div class="item-list">
+                        <div class="item-box">
+                            <div class="item-icon speed"></div>
+                            <div>Velocidade - Paddle mais rápido</div>
+                        </div>
+                        
+                        <div class="item-box">
+                            <div class="item-icon size"></div>
+                            <div>Tamanho - Paddle maior</div>
+                        </div>
+                        
+                        <div class="item-box">
+                            <div class="item-icon multi"></div>
+                            <div>Multi-bola - Adiciona uma bola extra</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="instructions-section">
+                    <h3>Dicas</h3>
+                    <ul>
+                        <li>A bola acelera a cada rebatida consecutiva</li>
+                        <li>O ângulo da rebatida depende de onde a bola atinge o paddle</li>
+                        <li>Rebater com a ponta do paddle causa ângulos mais extremos</li>
+                        <li>No modo Contra o Tempo, foque em marcar pontos rapidamente</li>
+                        <li>No modo Caos, priorize defender seu lado primeiro</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <button class="back-btn" id="instructions-back-btn">
+                <i class="fas fa-arrow-left"></i> Voltar ao Menu
+            </button>
+        </div>
+        
+        <!-- Game Over -->
+        <div class="result-screen" id="game-over">
+            <div class="result-box">
+                <h2 class="result-title">Fim de Jogo!</h2>
+                
+                <div class="match-score">
+                    <span class="player-score" id="final-p1-score">0</span>
+                    <span class="score-divider">:</span>
+                    <span class="player2-score" id="final-p2-score">0</span>
+                </div>
+                
+                <div class="result-message" id="result-message">Jogador 1 venceu!</div>
+                
+                <div class="stats-container">
+                    <div class="stat-box">
+                        <span class="stat-label">Rallies</span>
+                        <span class="stat-value" id="final-rallies">0</span>
+                    </div>
+                    
+                    <div class="stat-box">
+                        <span class="stat-label">Tempo</span>
+                        <span class="stat-value" id="final-time">00:00</span>
+                    </div>
+                    
+                    <div class="stat-box">
+                        <span class="stat-label">Modo</span>
+                        <span class="stat-value" id="final-mode">Clássico</span>
+                    </div>
+                    
+                    <div class="stat-box">
+                        <span class="stat-label">Dificuldade</span>
+                        <span class="stat-value" id="final-difficulty">Médio</span>
+                    </div>
+                </div>
+                
+                <div class="result-btns">
+                    <button class="result-btn" id="retry-btn">
+                        <i class="fas fa-redo-alt"></i> Jogar Novamente
+                    </button>
+                    
+                    <button class="result-btn" id="menu-btn">
+                        <i class="fas fa-home"></i> Menu Principal
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pausa -->
+        <div class="pause-screen" id="pause-screen">
+            <div class="pause-box">
+                <h2 class="pause-title">Jogo Pausado</h2>
+                
+                <div class="pause-btns">
+                    <button class="pause-btn" id="resume-btn">
+                        <i class="fas fa-play"></i> Continuar Jogo
+                    </button>
+                    
+                    <button class="pause-btn" id="pause-restart-btn">
+                        <i class="fas fa-redo-alt"></i> Reiniciar Jogo
+                    </button>
+                    
+                    <button class="pause-btn" id="pause-exit-btn">
+                        <i class="fas fa-door-open"></i> Sair do Jogo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <p class="signature">MKalil &copy; 2025</p>
+    </footer>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Three.js setup para efeito de fundo futurista
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        
+        // Partículas
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 1000;
+        
+        const posArray = new Float32Array(particlesCount * 3);
+        const colorsArray = new Float32Array(particlesCount * 3);
+        
+        for(let i = 0; i < particlesCount * 3; i++) {
+            // Posição
+            posArray[i] = (Math.random() - 0.5) * 15;
+            
+            // Cores - gradiente do azul ao rosa
+            if (i % 3 === 0) { // R
+                colorsArray[i] = Math.random() * 0.3;
+            } else if (i % 3 === 1) { // G
+                colorsArray[i] = Math.random() * 0.5;
+            } else { // B
+                colorsArray[i] = Math.random() * 0.5 + 0.5;
+            }
+        }
+        
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colorsArray, 3));
+        
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.02,
+            transparent: true,
+            opacity: 0.8,
+            vertexColors: true,
+            blending: THREE.AdditiveBlending
+        });
+        
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+        
+        // Grade de linhas
+        const gridHelper = new THREE.GridHelper(20, 20, 0x00f3ff, 0xf700ff);
+        gridHelper.position.y = -3;
+        scene.add(gridHelper);
+        
+        // Posição da câmera
+        camera.position.z = 6;
+        camera.position.y = 0.5;
+        camera.rotation.x = -0.2;
+        
+        // Luzes
+        const pointLight1 = new THREE.PointLight(0x00f3ff, 1);
+        pointLight1.position.set(5, 5, 5);
+        scene.add(pointLight1);
+        
+        const pointLight2 = new THREE.PointLight(0xf700ff, 1);
+        pointLight2.position.set(-5, -5, 5);
+        scene.add(pointLight2);
+        
+        // Mouse tracking para interatividade
+        let mouseX = 0;
+        let mouseY = 0;
+        
+        document.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+            mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+        });
+        
+        // Função de animação
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Rotação suave da grade baseada na posição do mouse
+            gridHelper.rotation.y += 0.002;
+            
+            // Movimento das partículas
+            particlesMesh.rotation.y += 0.001;
+            particlesMesh.rotation.x = mouseY * 0.05;
+            particlesMesh.rotation.z = mouseX * 0.05;
+            
+            // Camera follow suave
+            camera.position.x += (mouseX * 0.5 - camera.position.x) * 0.05;
+            camera.position.y += (mouseY * 0.2 - camera.position.y) * 0.05;
+            
+            renderer.render(scene, camera);
+        }
+        
+        animate();
+        
+        // Redimensionar canvas quando a janela é redimensionada
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        
+        // ========== JOGO PONG - LÓGICA ==========
+        
+        // Elementos do DOM
+        const mainMenu = document.getElementById('main-menu');
+        const gameArea = document.getElementById('game-area');
+        const highScores = document.getElementById('high-scores');
+        const instructions = document.getElementById('instructions');
+        const gameBoard = document.getElementById('game-board');
+        const gameCanvas = document.getElementById('game-canvas');
+        const ctx = gameCanvas.getContext('2d');
+        const countdownElement = document.getElementById('countdown');
+        const p1PowerupStatus = document.getElementById('p1-powerup');
+        const p2PowerupStatus = document.getElementById('p2-powerup');
+        const speedEffect = document.getElementById('speed-effect');
+        const sizeEffect = document.getElementById('size-effect');
+        const multiEffect = document.getElementById('multi-effect');
+        const mobileControls = document.getElementById('mobile-controls');
+        const gameOver = document.getElementById('game-over');
+        const pauseScreen = document.getElementById('pause-screen');
+        
+        // Informações do jogo
+        const p1ScoreElement = document.getElementById('p1-score');
+        const p2ScoreElement = document.getElementById('p2-score');
+        const ralliesElement = document.getElementById('rallies-value');
+        
+        // Resultados
+        const finalP1Score = document.getElementById('final-p1-score');
+        const finalP2Score = document.getElementById('final-p2-score');
+        const finalRallies = document.getElementById('final-rallies');
+        const finalTime = document.getElementById('final-time');
+        const finalMode = document.getElementById('final-mode');
+        const finalDifficulty = document.getElementById('final-difficulty');
+        const resultMessage = document.getElementById('result-message');
+        
+        // Botões
+        const modeButtons = document.querySelectorAll('.mode-btn');
+        const levelButtons = document.querySelectorAll('.level-btn');
+        const styleButtons = document.querySelectorAll('.style-btn');
+        const difficultyOptions = document.querySelector('.difficulty-options');
+        const startGameBtn = document.getElementById('start-game-btn');
+        const showScoresBtn = document.getElementById('show-scores-btn');
+        const showInstructionsBtn = document.getElementById('show-instructions-btn');
+        const backToMenuBtn = document.getElementById('back-to-menu-btn');
+        const instructionsBackBtn = document.getElementById('instructions-back-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const exitBtn = document.getElementById('exit-btn');
+        const retryBtn = document.getElementById('retry-btn');
+        const menuBtn = document.getElementById('menu-btn');
+        const resumeBtn = document.getElementById('resume-btn');
+        const pauseRestartBtn = document.getElementById('pause-restart-btn');
+        const pauseExitBtn = document.getElementById('pause-exit-btn');
+        
+        // Controles móveis
+        const p1UpBtn = document.getElementById('p1-up-btn');
+        const p1DownBtn = document.getElementById('p1-down-btn');
+        const p2UpBtn = document.getElementById('p2-up-btn');
+        const p2DownBtn = document.getElementById('p2-down-btn');
+        
+        // Configurações do jogo
+        const gameConfig = {
+            easy: {
+                aiSpeed: 0.03,
+                aiReactionTime: 300,
+                aiErrorMargin: 30
+            },
+            medium: {
+                aiSpeed: 0.05,
+                aiReactionTime: 200,
+                aiErrorMargin: 20
+            },
+            hard: {
+                aiSpeed: 0.07,
+                aiReactionTime: 100,
+                aiErrorMargin: 10
+            },
+            impossible: {
+                aiSpeed: 0.1,
+                aiReactionTime: 0,
+                aiErrorMargin: 0
+            }
+        };
+        
+        // Configurações visuais
+        const styleConfigs = {
+            neon: {
+                paddleP1: '#00f3ff',
+                paddleP2: '#f700ff',
+                ball: '#ffffff',
+                ballGlow: true,
+                paddleGlow: true,
+                netStyle: 'dashed',
+                background: 'rgba(13, 6, 31, 0.8)'
+            },
+            retro: {
+                paddleP1: '#ffffff',
+                paddleP2: '#ffffff',
+                ball: '#ffffff',
+                ballGlow: false,
+                paddleGlow: false,
+                netStyle: 'solid',
+                background: '#000000'
+            },
+            minimalist: {
+                paddleP1: '#aaaaaa',
+                paddleP2: '#aaaaaa',
+                ball: '#ffffff',
+                ballGlow: false,
+                paddleGlow: false,
+                netStyle: 'none',
+                background: '#111111'
+            },
+            cyber: {
+                paddleP1: '#00ff00',
+                paddleP2: '#ff00ff',
+                ball: '#ffff00',
+                ballGlow: true,
+                paddleGlow: true,
+                netStyle: 'dotted',
+                background: 'rgba(0, 20, 0, 0.8)'
+            }
+        };
+        
+        // Estado do jogo
+        let gameState = {
+            mode: 'classic',
+            players: '1',
+            level: 'easy',
+            style: 'neon',
+            paddleWidth: 15,
+            paddleHeight: 100,
+            ballSize: 15,
+            ballSpeed: 5,
+            maxBallSpeed: 15,
+            ballSpeedIncrement: 0.2,
+            paddle1: {
+                x: 0,
+                y: 0,
+                dy: 0,
+                speed: 8,
+                originalSpeed: 8,
+                originalHeight: 100,
+                powerup: null,
+                powerupTimer: null
+            },
+            paddle2: {
+                x: 0,
+                y: 0,
+                dy: 0,
+                speed: 8,
+                originalSpeed: 8,
+                originalHeight: 100,
+                powerup: null,
+                powerupTimer: null
+            },
+            balls: [],
+            powerups: [],
+            keys: {
+                w: false,
+                s: false,
+                up: false,
+                down: false
+            },
+            score: {
+                p1: 0,
+                p2: 0,
+                rallies: 0
+            },
+            time: 0,
+            gameInterval: null,
+            timeInterval: null,
+            powerupInterval: null,
+            countdownInterval: null,
+            paused: false,
+            gameActive: false,
+            winScore: 7,
+            timeLimit: 180, // 3 minutos para o modo contra o tempo
+            canvasWidth: 0,
+            canvasHeight: 0,
+            aiTarget: 0,
+            aiUpdateTime: 0,
+            scores: [],
+            gameStartTimestamp: 0
+        };
+        
+        // Inicialização
+        function init() {
+            loadGameData();
+            bindEvents();
+            checkMobileDevice();
+            setupCanvas();
+            
+            // Esconder opções de dificuldade inicialmente (apenas para 1 jogador)
+            updateDifficultyVisibility();
+        }
+        
+        // Verificar se é dispositivo móvel
+        function checkMobileDevice() {
+            if (window.innerWidth <= 768 || 'ontouchstart' in window) {
+                mobileControls.style.display = 'flex';
+            } else {
+                mobileControls.style.display = 'none';
+            }
+        }
+        
+        // Configurar canvas
+        function setupCanvas() {
+            // Ajustar dimensões do canvas
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+        }
+        
+        function resizeCanvas() {
+            const boardRect = gameBoard.getBoundingClientRect();
+            gameCanvas.width = boardRect.width;
+            gameCanvas.height = boardRect.height;
+            
+            gameState.canvasWidth = gameCanvas.width;
+            gameState.canvasHeight = gameCanvas.height;
+            
+            // Recalcular posições iniciais se o jogo estiver ativo
+            if (gameState.gameActive) {
+                resetPositions();
+            }
+        }
+        
+        // Carregar dados salvos
+        function loadGameData() {
+            const savedScores = localStorage.getItem('pong_scores');
+            
+            if (savedScores) {
+                gameState.scores = JSON.parse(savedScores);
+            }
+            
+            updateScoresDisplay();
+        }
+        
+        // Salvar dados do jogo
+        function saveGameData() {
+            localStorage.setItem('pong_scores', JSON.stringify(gameState.scores));
+        }
+        
+        // Eventos de clique
+        function bindEvents() {
+            // Navegação
+            modeButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    modeButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    gameState.mode = btn.dataset.mode;
+                });
+            });
+            
+            levelButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Verificar se é botão de players ou dificuldade
+                    if (btn.dataset.players) {
+                        // Atualizar número de jogadores
+                        document.querySelectorAll('.level-btn[data-players]').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        gameState.players = btn.dataset.players;
+                        
+                        // Mostrar/esconder opções de dificuldade
+                        updateDifficultyVisibility();
+                    } else if (btn.dataset.level) {
+                        // Atualizar nível de dificuldade
+                        document.querySelectorAll('.level-btn[data-level]').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        gameState.level = btn.dataset.level;
+                    }
+                });
+            });
+            
+            styleButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    styleButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    gameState.style = btn.dataset.style;
+                });
+            });
+            
+            startGameBtn.addEventListener('click', startGame);
+            showScoresBtn.addEventListener('click', showHighScores);
+            showInstructionsBtn.addEventListener('click', showInstructions);
+            backToMenuBtn.addEventListener('click', showMainMenu);
+            instructionsBackBtn.addEventListener('click', showMainMenu);
+            
+            // Controles do jogo
+            pauseBtn.addEventListener('click', togglePause);
+            restartBtn.addEventListener('click', restartGame);
+            exitBtn.addEventListener('click', exitGame);
+            
+            // Resultados
+            retryBtn.addEventListener('click', restartGame);
+            menuBtn.addEventListener('click', showMainMenu);
+            
+            // Pausa
+            resumeBtn.addEventListener('click', resumeGame);
+            pauseRestartBtn.addEventListener('click', restartGame);
+            pauseExitBtn.addEventListener('click', exitGame);
+            
+            // Controles de teclado
+            document.addEventListener('keydown', handleKeyDown);
+            document.addEventListener('keyup', handleKeyUp);
+            
+            // Controles móveis
+            p1UpBtn.addEventListener('touchstart', () => { gameState.keys.w = true; });
+            p1UpBtn.addEventListener('touchend', () => { gameState.keys.w = false; });
+            p1DownBtn.addEventListener('touchstart', () => { gameState.keys.s = true; });
+            p1DownBtn.addEventListener('touchend', () => { gameState.keys.s = false; });
+            
+            p2UpBtn.addEventListener('touchstart', () => { gameState.keys.up = true; });
+            p2UpBtn.addEventListener('touchend', () => { gameState.keys.up = false; });
+            p2DownBtn.addEventListener('touchstart', () => { gameState.keys.down = true; });
+            p2DownBtn.addEventListener('touchend', () => { gameState.keys.down = false; });
+            
+            // Botões para mouse também
+            p1UpBtn.addEventListener('mousedown', () => { gameState.keys.w = true; });
+            p1UpBtn.addEventListener('mouseup', () => { gameState.keys.w = false; });
+            p1DownBtn.addEventListener('mousedown', () => { gameState.keys.s = true; });
+            p1DownBtn.addEventListener('mouseup', () => { gameState.keys.s = false; });
+            
+            p2UpBtn.addEventListener('mousedown', () => { gameState.keys.up = true; });
+            p2UpBtn.addEventListener('mouseup', () => { gameState.keys.up = false; });
+            p2DownBtn.addEventListener('mousedown', () => { gameState.keys.down = true; });
+            p2DownBtn.addEventListener('mousedown', () => { gameState.keys.down = false; });
+        }
+        
+        // Atualizar visibilidade das opções de dificuldade
+        function updateDifficultyVisibility() {
+            if (gameState.players === '1') {
+                difficultyOptions.style.display = 'grid';
+            } else {
+                difficultyOptions.style.display = 'none';
+            }
+        }
+        
+        // Lidar com teclas pressionadas
+        function handleKeyDown(event) {
+            if (gameState.gameActive && !gameState.paused) {
+                switch(event.key) {
+                    case "w":
+                    case "W":
+                        gameState.keys.w = true;
+                        break;
+                    case "s":
+                    case "S":
+                        gameState.keys.s = true;
+                        break;
+                    case "ArrowUp":
+                        gameState.keys.up = true;
+                        break;
+                    case "ArrowDown":
+                        gameState.keys.down = true;
+                        break;
+                }
+            }
+            
+            // Pausar com tecla P ou Espaço
+            if ((event.key === 'p' || event.key === 'P' || event.key === ' ') && gameState.gameActive) {
+                togglePause();
+            }
+        }
+        
+        function handleKeyUp(event) {
+            switch(event.key) {
+                case "w":
+                case "W":
+                    gameState.keys.w = false;
+                    break;
+                case "s":
+                case "S":
+                    gameState.keys.s = false;
+                    break;
+                case "ArrowUp":
+                    gameState.keys.up = false;
+                    break;
+                case "ArrowDown":
+                    gameState.keys.down = false;
+                    break;
+            }
+        }
+        
+        // Navegação entre telas
+        function showMainMenu() {
+            stopGame();
+            hideResultScreens();
+            
+            gameArea.style.display = 'none';
+            highScores.style.display = 'none';
+            instructions.style.display = 'none';
+            
+            mainMenu.style.display = 'block';
+            mainMenu.classList.add('fade-in');
+        }
+        
+        function showGameArea() {
+            mainMenu.style.display = 'none';
+            highScores.style.display = 'none';
+            instructions.style.display = 'none';
+            
+            gameArea.style.display = 'flex';
+            gameArea.classList.add('fade-in');
+            
+            resizeCanvas();
+        }
+        
+        function showHighScores() {
+            mainMenu.style.display = 'none';
+            
+            updateScoresDisplay();
+            
+            highScores.style.display = 'block';
+            highScores.classList.add('fade-in');
+        }
+        
+        function showInstructions() {
+            mainMenu.style.display = 'none';
+            
+            instructions.style.display = 'block';
+            instructions.classList.add('fade-in');
+        }
+        
+        // Atualizar exibição de pontuações
+        function updateScoresDisplay() {
+            const scoresContainer = document.getElementById('scores-container');
+            scoresContainer.innerHTML = '';
+            
+            if (gameState.scores.length === 0) {
+                scoresContainer.innerHTML = '<div class="score-item">Nenhuma pontuação registrada ainda.</div>';
+                return;
+            }
+            
+            // Ordenar por pontuação (maior primeiro)
+            const sortedScores = [...gameState.scores].sort((a, b) => b.score - a.score);
+            
+            // Mostrar as 10 melhores
+            const topScores = sortedScores.slice(0, 10);
+            
+            topScores.forEach((score, index) => {
+                const scoreItem = document.createElement('div');
+                scoreItem.className = 'score-item';
+                
+                scoreItem.innerHTML = `
+                    <div class="score-rank">${index + 1}</div>
+                    <div class="score-mode">${getModeName(score.mode)} (${getLevelName(score.level)})</div>
+                    <div class="score-score">${score.score}</div>
+                    <div class="score-rallies">${score.rallies}</div>
+                    <div class="score-time">${formatTime(score.time)}</div>
+                `;
+                
+                scoresContainer.appendChild(scoreItem);
+            });
+        }
+        
+        function getModeName(mode) {
+            const names = {
+                'classic': 'Clássico',
+                'modern': 'Moderno',
+                'time-attack': 'Contra o Tempo',
+                'chaos': 'Caos'
+            };
+            
+            return names[mode] || mode;
+        }
+        
+        function getLevelName(level) {
+            const names = {
+                'easy': 'Fácil',
+                'medium': 'Médio',
+                'hard': 'Difícil',
+                'impossible': 'Impossível'
+            };
+            
+            return names[level] || level;
+        }
+        
+        // Iniciar jogo
+        function startGame() {
+            resetGameState();
+            showGameArea();
+            startCountdown();
+        }
+        
+        // Resetar estado do jogo
+        function resetGameState() {
+            // Limpar intervalos existentes
+            clearInterval(gameState.gameInterval);
+            clearInterval(gameState.timeInterval);
+            clearInterval(gameState.powerupInterval);
+            clearInterval(gameState.countdownInterval);
+            clearTimeout(gameState.paddle1.powerupTimer);
+            clearTimeout(gameState.paddle2.powerupTimer);
+            
+            // Configuração básica
+            gameState.score.p1 = 0;
+            gameState.score.p2 = 0;
+            gameState.score.rallies = 0;
+            gameState.time = 0;
+            gameState.paused = false;
+            gameState.gameActive = false;
+            gameState.balls = [];
+            gameState.powerups = [];
+            
+            // Configurações de paddles
+            gameState.paddleWidth = 15;
+            gameState.paddleHeight = 100;
+            gameState.paddle1.originalHeight = 100;
+            gameState.paddle2.originalHeight = 100;
+            gameState.paddle1.originalSpeed = 8;
+            gameState.paddle2.originalSpeed = 8;
+            gameState.paddle1.speed = 8;
+            gameState.paddle2.speed = 8;
+            gameState.paddle1.powerup = null;
+            gameState.paddle2.powerup = null;
+            
+            // Configurações de bola
+            gameState.ballSize = 15;
+            gameState.ballSpeed = 5;
+            gameState.maxBallSpeed = 15;
+            gameState.ballSpeedIncrement = 0.2;
+            
+            // Esconder status de power-up
+            p1PowerupStatus.classList.remove('active');
+            p2PowerupStatus.classList.remove('active');
+            speedEffect.classList.remove('active');
+            sizeEffect.classList.remove('active');
+            multiEffect.classList.remove('active');
+            
+            // Resetar interface
+            p1ScoreElement.textContent = '0';
+            p2ScoreElement.textContent = '0';
+            ralliesElement.textContent = '0';
+            
+            // Configurações específicas de modo
+            if (gameState.mode === 'modern') {
+                // Preparar intervalo para spawnar power-ups
+            } else if (gameState.mode === 'time-attack') {
+                // Configurar limite de tempo
+                gameState.winScore = 999; // Sem limite de pontos
+            } else if (gameState.mode === 'chaos') {
+                // Começar com várias bolas
+                gameState.maxBallSpeed = 12; // Limitar velocidade máxima no modo caos
+            } else {
+                // Modo clássico
+                gameState.winScore = 7;
+            }
+            
+            // Posicionar elementos
+            resetPositions();
+        }
+        
+        // Resetar posições dos elementos
+        function resetPositions() {
+            const width = gameState.canvasWidth;
+            const height = gameState.canvasHeight;
+            
+            // Posicionar paddles
+            gameState.paddle1.x = 20;
+            gameState.paddle1.y = height / 2 - gameState.paddleHeight / 2;
+            
+            gameState.paddle2.x = width - 20 - gameState.paddleWidth;
+            gameState.paddle2.y = height / 2 - gameState.paddleHeight / 2;
+            
+            // Limpar bolas existentes
+            gameState.balls = [];
+            
+            // Adicionar bola inicial
+            addBall();
+            
+            // Adicionar bolas extras no modo caos
+            if (gameState.mode === 'chaos') {
+                setTimeout(() => {
+                    addBall();
+                    setTimeout(() => {
+                        addBall();
+                    }, 2000);
+                }, 2000);
+            }
+        }
+        
+        // Adicionar bola
+        function addBall() {
+            const width = gameState.canvasWidth;
+            const height = gameState.canvasHeight;
+            
+            // Direção aleatória (esquerda ou direita)
+            const direction = Math.random() > 0.5 ? 1 : -1;
+            
+            // Velocidade aleatória no eixo Y
+            const randomY = (Math.random() * 2 - 1) * 3;
+            
+            gameState.balls.push({
+                x: width / 2 - gameState.ballSize / 2,
+                y: height / 2 - gameState.ballSize / 2,
+                dx: gameState.ballSpeed * direction,
+                dy: randomY,
+                speed: gameState.ballSpeed,
+                size: gameState.ballSize
+            });
+        }
+        
+        // Adicionar power-up
+        function addPowerup() {
+            const width = gameState.canvasWidth;
+            const height = gameState.canvasHeight;
+            
+            // Tipos de power-up:
+            // 0: Velocidade do paddle
+            // 1: Tamanho do paddle
+            // 2: Multi-bola
+            const type = Math.floor(Math.random() * 3);
+            
+            // Posição aleatória (evitando bordas)
+            const padding = 50;
+            const x = Math.random() * (width - padding * 2) + padding;
+            const y = Math.random() * (height - padding * 2) + padding;
+            
+            gameState.powerups.push({
+                x,
+                y,
+                type,
+                size: 20,
+                active: true
+            });
+        }
+        
+        // Iniciar contagem regressiva
+        function startCountdown() {
+            let count = 3;
+            countdownElement.textContent = count;
+            countdownElement.classList.add('active');
+            
+            gameState.countdownInterval = setInterval(() => {
+                count--;
+                
+                if (count > 0) {
+                    countdownElement.textContent = count;
+                    countdownElement.classList.remove('active');
+                    void countdownElement.offsetWidth; // Trigger reflow
+                    countdownElement.classList.add('active');
+                } else {
+                    countdownElement.textContent = 'GO!';
+                    countdownElement.classList.remove('active');
+                    void countdownElement.offsetWidth; // Trigger reflow
+                    countdownElement.classList.add('active');
+                    
+                    clearInterval(gameState.countdownInterval);
+                    
+                    // Iniciar jogo após o GO
+                    setTimeout(() => {
+                        startGameLoop();
+                    }, 1000);
+                }
+            }, 1000);
+        }
+        
+        // Iniciar loop do jogo
+        function startGameLoop() {
+            gameState.gameActive = true;
+            gameState.gameStartTimestamp = Date.now();
+            
+            // Configurar AI
+            if (gameState.players === '1') {
+                const config = gameConfig[gameState.level];
+                gameState.aiTarget = gameState.canvasHeight / 2;
+                gameState.aiUpdateTime = Date.now() + config.aiReactionTime;
+            }
+            
+            // Iniciar loop principal (60 FPS)
+            gameState.gameInterval = setInterval(() => {
+                if (!gameState.paused) {
+                    update();
+                    render();
+                }
+            }, 1000 / 60);
+            
+            // Iniciar temporizador
+            gameState.timeInterval = setInterval(() => {
+                if (!gameState.paused) {
+                    gameState.time++;
+                    
+                    // Verificar limite de tempo no modo contra o tempo
+                    if (gameState.mode === 'time-attack' && gameState.time >= gameState.timeLimit) {
+                        gameOver();
+                    }
+                }
+            }, 1000);
+            
+            // Iniciar spawn de power-ups (apenas no modo moderno)
+            if (gameState.mode === 'modern') {
+                gameState.powerupInterval = setInterval(() => {
+                    if (!gameState.paused && gameState.gameActive) {
+                        // Limitar a 3 power-ups simultâneos
+                        if (gameState.powerups.length < 3) {
+                            // 20% de chance a cada 5 segundos
+                            if (Math.random() < 0.2) {
+                                addPowerup();
+                            }
+                        }
+                    }
+                }, 5000);
+            }
+        }
+        
+        // Atualizar estado do jogo
+        function update() {
+            const width = gameState.canvasWidth;
+            const height = gameState.canvasHeight;
+            
+            // Mover paddle 1 (jogador)
+            if (gameState.keys.w) {
+                gameState.paddle1.y -= gameState.paddle1.speed;
+            }
+            
+            if (gameState.keys.s) {
+                gameState.paddle1.y += gameState.paddle1.speed;
+            }
+            
+            // Mover paddle 2 (jogador 2 ou IA)
+            if (gameState.players === '2') {
+                // Controle do jogador 2
+                if (gameState.keys.up) {
+                    gameState.paddle2.y -= gameState.paddle2.speed;
+                }
+                
+                if (gameState.keys.down) {
+                    gameState.paddle2.y += gameState.paddle2.speed;
+                }
+            } else {
+                // IA
+                updateAI();
+            }
+            
+            // Limitar posição dos paddles
+            gameState.paddle1.y = Math.max(0, Math.min(height - gameState.paddle1.originalHeight, gameState.paddle1.y));
+            gameState.paddle2.y = Math.max(0, Math.min(height - gameState.paddle2.originalHeight, gameState.paddle2.y));
+            
+            // Atualizar cada bola
+            for (let i = gameState.balls.length - 1; i >= 0; i--) {
+                const ball = gameState.balls[i];
+                
+                // Mover bola
+                ball.x += ball.dx;
+                ball.y += ball.dy;
+                
+                // Colisão com as bordas superior e inferior
+                if (ball.y <= 0 || ball.y + ball.size >= height) {
+                    ball.dy *= -1;
+                    // Ajustar posição para evitar ficar preso na borda
+                    if (ball.y <= 0) {
+                        ball.y = 1;
+                    } else {
+                        ball.y = height - ball.size - 1;
+                    }
+                }
+                
+                // Colisão com paddle 1 (esquerda)
+                if (
+                    ball.x <= gameState.paddle1.x + gameState.paddleWidth &&
+                    ball.x >= gameState.paddle1.x &&
+                    ball.y + ball.size >= gameState.paddle1.y &&
+                    ball.y <= gameState.paddle1.y + gameState.paddle1.originalHeight
+                ) {
+                    // Calcular ângulo de rebatida com base na posição relativa
+                    const hitPosition = (ball.y + ball.size / 2 - gameState.paddle1.y) / gameState.paddle1.originalHeight;
+                    const angle = (hitPosition - 0.5) * Math.PI * 0.7; // -35 a 35 graus
+                    
+                    // Aumentar velocidade gradualmente
+                    const speed = Math.min(gameState.maxBallSpeed, ball.speed + gameState.ballSpeedIncrement);
+                    
+                    ball.dx = Math.cos(angle) * speed;
+                    ball.dy = Math.sin(angle) * speed;
+                    
+                    // Garantir que a bola se mova para a direita
+                    if (ball.dx < 0) {
+                        ball.dx *= -1;
+                    }
+                    
+                    ball.speed = speed;
+                    gameState.score.rallies++;
+                    ralliesElement.textContent = gameState.score.rallies;
+                }
+                
+                // Colisão com paddle 2 (direita)
+                if (
+                    ball.x + ball.size >= gameState.paddle2.x &&
+                    ball.x + ball.size <= gameState.paddle2.x + gameState.paddleWidth &&
+                    ball.y + ball.size >= gameState.paddle2.y &&
+                    ball.y <= gameState.paddle2.y + gameState.paddle2.originalHeight
+                ) {
+                    // Calcular ângulo de rebatida com base na posição relativa
+                    const hitPosition = (ball.y + ball.size / 2 - gameState.paddle2.y) / gameState.paddle2.originalHeight;
+                    const angle = (hitPosition - 0.5) * Math.PI * 0.7; // -35 a 35 graus
+                    
+                    // Aumentar velocidade gradualmente
+                    const speed = Math.min(gameState.maxBallSpeed, ball.speed + gameState.ballSpeedIncrement);
+                    
+                    ball.dx = -Math.cos(angle) * speed;
+                    ball.dy = Math.sin(angle) * speed;
+                    
+                    // Garantir que a bola se mova para a esquerda
+                    if (ball.dx > 0) {
+                        ball.dx *= -1;
+                    }
+                    
+                    ball.speed = speed;
+                    gameState.score.rallies++;
+                    ralliesElement.textContent = gameState.score.rallies;
+                }
+                
+                // Ponto (bola saiu pela esquerda ou direita)
+                if (ball.x + ball.size < 0) {
+                    // Ponto para jogador 2
+                    gameState.score.p2++;
+                    p2ScoreElement.textContent = gameState.score.p2;
+                    
+                    // Remover a bola
+                    gameState.balls.splice(i, 1);
+                    
+                    // Se não houver mais bolas, reposicionar
+                    if (gameState.balls.length === 0) {
+                        resetBall();
+                        
+                        // Verificar se o jogo acabou
+                        if (gameState.score.p2 >= gameState.winScore) {
+                            gameOver();
+                        }
+                    }
+                } else if (ball.x > width) {
+                    // Ponto para jogador 1
+                    gameState.score.p1++;
+                    p1ScoreElement.textContent = gameState.score.p1;
+                    
+                    // Remover a bola
+                    gameState.balls.splice(i, 1);
+                    
+                    // Se não houver mais bolas, reposicionar
+                    if (gameState.balls.length === 0) {
+                        resetBall();
+                        
+                        // Verificar se o jogo acabou
+                        if (gameState.score.p1 >= gameState.winScore) {
+                            gameOver();
+                        }
+                    }
+                }
+            }
+            
+            // Atualizar power-ups
+            for (let i = gameState.powerups.length - 1; i >= 0; i--) {
+                const powerup = gameState.powerups[i];
+                
+                // Verificar colisão com paddle 1
+                if (
+                    powerup.active &&
+                    powerup.x >= gameState.paddle1.x &&
+                    powerup.x <= gameState.paddle1.x + gameState.paddleWidth &&
+                    powerup.y + powerup.size >= gameState.paddle1.y &&
+                    powerup.y <= gameState.paddle1.y + gameState.paddle1.originalHeight
+                ) {
+                    applyPowerup(1, powerup.type);
+                    gameState.powerups.splice(i, 1);
+                    continue;
+                }
+                
+                // Verificar colisão com paddle 2
+                if (
+                    powerup.active &&
+                    powerup.x + powerup.size >= gameState.paddle2.x &&
+                    powerup.x + powerup.size <= gameState.paddle2.x + gameState.paddleWidth &&
+                    powerup.y + powerup.size >= gameState.paddle2.y &&
+                    powerup.y <= gameState.paddle2.y + gameState.paddle2.originalHeight
+                ) {
+                    applyPowerup(2, powerup.type);
+                    gameState.powerups.splice(i, 1);
+                }
+            }
+        }
+        
+        // Atualizar IA
+        function updateAI() {
+            // Só atualizar a IA após o tempo de reação
+            const now = Date.now();
+            if (now < gameState.aiUpdateTime) {
+                return;
+            }
+            
+            const config = gameConfig[gameState.level];
+            
+            // Calcular a próxima posição da bola
+            // Escolher a bola mais próxima do paddle da IA como alvo
+            let targetBall = null;
+            let shortestDistance = Infinity;
+            
+            for (const ball of gameState.balls) {
+                // Só considerar bolas se movendo na direção da IA
+                if (ball.dx > 0) {
+                    const distance = gameState.paddle2.x - ball.x;
+                    if (distance < shortestDistance) {
+                        shortestDistance = distance;
+                        targetBall = ball;
+                    }
+                }
+            }
+            
+            // Se não houver bola indo em direção à IA, mover para o centro
+            if (!targetBall) {
+                const paddleCenter = gameState.paddle2.y + gameState.paddle2.originalHeight / 2;
+                const boardCenter = gameState.canvasHeight / 2;
+                
+                if (paddleCenter < boardCenter - 10) {
+                    gameState.paddle2.y += gameState.paddle2.speed * config.aiSpeed * 2;
+                } else if (paddleCenter > boardCenter + 10) {
+                    gameState.paddle2.y -= gameState.paddle2.speed * config.aiSpeed * 2;
+                }
+                
+                return;
+            }
+            
+            // Simular trajetória da bola para prever onde ela vai estar
+            let simulatedX = targetBall.x;
+            let simulatedY = targetBall.y;
+            let simulatedDx = targetBall.dx;
+            let simulatedDy = targetBall.dy;
+            
+            // Simular até a bola chegar ao paddle da IA
+            while (simulatedX < gameState.paddle2.x) {
+                simulatedX += simulatedDx;
+                simulatedY += simulatedDy;
+                
+                // Verificar colisão com bordas
+                if (simulatedY <= 0 || simulatedY + targetBall.size >= gameState.canvasHeight) {
+                    simulatedDy *= -1;
+                }
+            }
+            
+            // Adicionar margem de erro baseada na dificuldade
+            const errorMargin = config.aiErrorMargin;
+            const randomError = Math.random() * errorMargin * 2 - errorMargin;
+            
+            // Atualizar alvo da IA
+            gameState.aiTarget = simulatedY + targetBall.size / 2 + randomError;
+            
+            // Limitar alvo dentro da área jogável
+            gameState.aiTarget = Math.max(
+                gameState.paddle2.originalHeight / 2,
+                Math.min(
+                    gameState.canvasHeight - gameState.paddle2.originalHeight / 2,
+                    gameState.aiTarget
+                )
+            );
+            
+            // Mover paddle da IA em direção ao alvo
+            const paddleCenter = gameState.paddle2.y + gameState.paddle2.originalHeight / 2;
+            
+            if (paddleCenter < gameState.aiTarget - 5) {
+                gameState.paddle2.y += gameState.paddle2.speed * config.aiSpeed;
+            } else if (paddleCenter > gameState.aiTarget + 5) {
+                gameState.paddle2.y -= gameState.paddle2.speed * config.aiSpeed;
+            }
+            
+            // Atualizar tempo da próxima reação
+            gameState.aiUpdateTime = now + config.aiReactionTime;
+        }
+        
+        // Aplicar power-up
+        function applyPowerup(player, type) {
+            const paddle = player === 1 ? gameState.paddle1 : gameState.paddle2;
+            const statusElement = player === 1 ? p1PowerupStatus : p2PowerupStatus;
+            
+            // Remover power-up anterior se existir
+            clearTimeout(paddle.powerupTimer);
+            
+            // Aplicar novo power-up
+            switch (type) {
+                case 0: // Velocidade
+                    paddle.speed = paddle.originalSpeed * 1.5;
+                    paddle.powerup = 'speed';
+                    showPowerupStatus(player, 'Velocidade', 5);
+                    speedEffect.classList.add('active');
+                    
+                    // Remover após 5 segundos
+                    paddle.powerupTimer = setTimeout(() => {
+                        paddle.speed = paddle.originalSpeed;
+                        paddle.powerup = null;
+                        statusElement.classList.remove('active');
+                        speedEffect.classList.remove('active');
+                    }, 5000);
+                    break;
+                    
+                case 1: // Tamanho
+                    // Aumentar tamanho do paddle (50% maior)
+                    paddle.originalHeight = gameState.paddleHeight * 1.5;
+                    paddle.powerup = 'size';
+                    showPowerupStatus(player, 'Tamanho', 7);
+                    sizeEffect.classList.add('active');
+                    
+                    // Remover após 7 segundos
+                    paddle.powerupTimer = setTimeout(() => {
+                        paddle.originalHeight = gameState.paddleHeight;
+                        paddle.powerup = null;
+                        statusElement.classList.remove('active');
+                        sizeEffect.classList.remove('active');
+                    }, 7000);
+                    break;
+                    
+                case 2: // Multi-bola
+                    // Adicionar bola extra
+                    addBall();
+                    paddle.powerup = 'multi';
+                    showPowerupStatus(player, 'Multi-bola', 3);
+                    multiEffect.classList.add('active');
+                    
+                    // Remover status após 3 segundos
+                    paddle.powerupTimer = setTimeout(() => {
+                        paddle.powerup = null;
+                        statusElement.classList.remove('active');
+                        multiEffect.classList.remove('active');
+                    }, 3000);
+                    break;
+            }
+        }
+        
+        // Mostrar status de power-up
+        function showPowerupStatus(player, type, seconds) {
+            const statusElement = player === 1 ? p1PowerupStatus : p2PowerupStatus;
+            statusElement.textContent = `${type}: ${seconds}s`;
+            statusElement.classList.add('active');
+            
+            // Atualizar contador a cada segundo
+            const countInterval = setInterval(() => {
+                seconds--;
+                if (seconds > 0) {
+                    statusElement.textContent = `${type}: ${seconds}s`;
+                } else {
+                    clearInterval(countInterval);
+                }
+            }, 1000);
+        }
+        
+        // Resetar bola após ponto
+        function resetBall() {
+            // Adicionar bola no centro
+            addBall();
+        }
+        
+        // Renderizar o jogo
+        function render() {
+            const width = gameState.canvasWidth;
+            const height = gameState.canvasHeight;
+            
+            // Limpar canvas
+            ctx.clearRect(0, 0, width, height);
+            
+            // Aplicar estilo visual
+            const style = styleConfigs[gameState.style];
+            
+            // Definir cores
+            ctx.fillStyle = style.background;
+            ctx.fillRect(0, 0, width, height);
+            
+            // Desenhar linha central
+            if (style.netStyle !== 'none') {
+                ctx.beginPath();
+                ctx.setLineDash(style.netStyle === 'dashed' ? [10, 10] : 
+                                (style.netStyle === 'dotted' ? [5, 5] : []));
+                ctx.moveTo(width / 2, 0);
+                ctx.lineTo(width / 2, height);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+            
+            // Desenhar paddles
+            // Paddle 1 (esquerda)
+            ctx.fillStyle = style.paddleP1;
+            if (style.paddleGlow) {
+                ctx.shadowColor = style.paddleP1;
+                ctx.shadowBlur = 10;
+            }
+            ctx.fillRect(gameState.paddle1.x, gameState.paddle1.y, gameState.paddleWidth, gameState.paddle1.originalHeight);
+            
+            // Paddle 2 (direita)
+            ctx.fillStyle = style.paddleP2;
+            if (style.paddleGlow) {
+                ctx.shadowColor = style.paddleP2;
+                ctx.shadowBlur = 10;
+            }
+            ctx.fillRect(gameState.paddle2.x, gameState.paddle2.y, gameState.paddleWidth, gameState.paddle2.originalHeight);
+            
+            // Resetar shadow
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            
+            // Desenhar bolas
+            ctx.fillStyle = style.ball;
+            if (style.ballGlow) {
+                ctx.shadowColor = style.ball;
+                ctx.shadowBlur = 10;
+            }
+            
+            for (const ball of gameState.balls) {
+                ctx.beginPath();
+                ctx.arc(ball.x + ball.size / 2, ball.y + ball.size / 2, ball.size / 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Resetar shadow
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            
+            // Desenhar power-ups
+            for (const powerup of gameState.powerups) {
+                let color;
+                switch (powerup.type) {
+                    case 0: // Velocidade
+                        color = '#ffdd00';
+                        break;
+                    case 1: // Tamanho
+                        color = '#00ff00';
+                        break;
+                    case 2: // Multi-bola
+                        color = '#ff00ff';
+                        break;
+                }
+                
+                ctx.fillStyle = color;
+                ctx.shadowColor = color;
+                ctx.shadowBlur = 10;
+                
+                ctx.beginPath();
+                ctx.arc(powerup.x + powerup.size / 2, powerup.y + powerup.size / 2, powerup.size / 2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Desenhar ícone dentro do power-up
+                ctx.fillStyle = '#fff';
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+                
+                if (powerup.type === 0) { // Velocidade (raio)
+                    ctx.beginPath();
+                    ctx.moveTo(powerup.x + powerup.size * 0.3, powerup.y + powerup.size * 0.3);
+                    ctx.lineTo(powerup.x + powerup.size * 0.7, powerup.y + powerup.size * 0.7);
+                    ctx.lineTo(powerup.x + powerup.size * 0.4, powerup.y + powerup.size * 0.7);
+                    ctx.lineTo(powerup.x + powerup.size * 0.7, powerup.y + powerup.size * 0.3);
+                    ctx.fill();
+                } else if (powerup.type === 1) { // Tamanho (seta para cima e para baixo)
+                    ctx.fillRect(powerup.x + powerup.size * 0.4, powerup.y + powerup.size * 0.3, powerup.size * 0.2, powerup.size * 0.4);
+                    
+                    // Seta para cima
+                    ctx.beginPath();
+                    ctx.moveTo(powerup.x + powerup.size * 0.3, powerup.y + powerup.size * 0.4);
+                    ctx.lineTo(powerup.x + powerup.size * 0.5, powerup.y + powerup.size * 0.2);
+                    ctx.lineTo(powerup.x + powerup.size * 0.7, powerup.y + powerup.size * 0.4);
+                    ctx.fill();
+                    
+                    // Seta para baixo
+                    ctx.beginPath();
+                    ctx.moveTo(powerup.x + powerup.size * 0.3, powerup.y + powerup.size * 0.6);
+                    ctx.lineTo(powerup.x + powerup.size * 0.5, powerup.y + powerup.size * 0.8);
+                    ctx.lineTo(powerup.x + powerup.size * 0.7, powerup.y + powerup.size * 0.6);
+                    ctx.fill();
+                } else if (powerup.type === 2) { // Multi-bola (círculos)
+                    ctx.beginPath();
+                    ctx.arc(powerup.x + powerup.size * 0.35, powerup.y + powerup.size * 0.35, powerup.size * 0.15, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.beginPath();
+                    ctx.arc(powerup.x + powerup.size * 0.65, powerup.y + powerup.size * 0.35, powerup.size * 0.15, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.beginPath();
+                    ctx.arc(powerup.x + powerup.size * 0.5, powerup.y + powerup.size * 0.65, powerup.size * 0.15, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+        
+        // Pausar/resumir jogo
+        function togglePause() {
+            gameState.paused = !gameState.paused;
+            
+            if (gameState.paused) {
+                pauseScreen.style.display = 'flex';
+            } else {
+                pauseScreen.style.display = 'none';
+            }
+        }
+        
+        // Resumir jogo (a partir da tela de pausa)
+        function resumeGame() {
+            gameState.paused = false;
+            pauseScreen.style.display = 'none';
+        }
+        
+        // Reiniciar jogo
+        function restartGame() {
+            stopGame();
+            hideResultScreens();
+            resetGameState();
+            startCountdown();
+        }
+        
+        // Sair do jogo
+        function exitGame() {
+            stopGame();
+            hideResultScreens();
+            showMainMenu();
+        }
+        
+        // Parar jogo
+        function stopGame() {
+            clearInterval(gameState.gameInterval);
+            clearInterval(gameState.timeInterval);
+            clearInterval(gameState.powerupInterval);
+            clearInterval(gameState.countdownInterval);
+            clearTimeout(gameState.paddle1.powerupTimer);
+            clearTimeout(gameState.paddle2.powerupTimer);
+            
+            gameState.gameActive = false;
+        }
+        
+        // Esconder telas de resultado
+        function hideResultScreens() {
+            gameOver.style.display = 'none';
+            pauseScreen.style.display = 'none';
+        }
+        
+        // Game over
+        function gameOver() {
+            stopGame();
+            
+            // Calcular tempo de jogo
+            const gameTimeInSeconds = Math.floor((Date.now() - gameState.gameStartTimestamp) / 1000);
+            
+            // Determinar vencedor
+            const p1Won = gameState.score.p1 > gameState.score.p2;
+            const isDraw = gameState.score.p1 === gameState.score.p2;
+            
+            // Atualizar UI
+            finalP1Score.textContent = gameState.score.p1;
+            finalP2Score.textContent = gameState.score.p2;
+            finalRallies.textContent = gameState.score.rallies;
+            finalTime.textContent = formatTime(gameTimeInSeconds);
+            finalMode.textContent = getModeName(gameState.mode);
+            finalDifficulty.textContent = gameState.players === '1' ? getLevelName(gameState.level) : 'N/A';
+            
+            // Definir mensagem de resultado
+            if (isDraw) {
+                resultMessage.textContent = 'Empate!';
+            } else if (p1Won) {
+                resultMessage.textContent = gameState.players === '1' ? 'Você venceu!' : 'Jogador 1 venceu!';
+            } else {
+                resultMessage.textContent = gameState.players === '1' ? 'Computador venceu!' : 'Jogador 2 venceu!';
+            }
+            
+            // Salvar pontuação (apenas para jogador vs IA)
+            if (gameState.players === '1') {
+                const totalScore = p1Won ? gameState.score.p1 * 100 + gameState.score.rallies * 10 : 
+                                         gameState.score.p1 * 50 + gameState.score.rallies * 5;
+                
+                gameState.scores.push({
+                    mode: gameState.mode,
+                    level: gameState.level,
+                    score: totalScore,
+                    rallies: gameState.score.rallies,
+                    time: gameTimeInSeconds,
+                    playerWon: p1Won,
+                    date: new Date().toISOString()
+                });
+                
+                // Limitar a 100 pontuações
+                if (gameState.scores.length > 100) {
+                    gameState.scores = gameState.scores.slice(-100);
+                }
+                
+                saveGameData();
+            }
+            
+            // Mostrar tela de game over
+            gameOver.style.display = 'flex';
+        }
+        
+        // Formatar tempo
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+        
+        // Inicializar o jogo
+        init();
