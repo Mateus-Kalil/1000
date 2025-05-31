@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MKGAMES - Portal de Jogos</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHJlY3Qgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiByeD0iMiIgZmlsbD0iIzAzMDAxNCIvPgogIDxwYXRoIGQ9Ik0zIDMgTCA3IDMgTCA3IDcgTCAxMSAzIEwgMTMgMyBMIDEzIDEzIEwgOSAxMyBMIDkgOSBMIDUgMTMgTCAzIDEzIFoiIGZpbGw9IiMwMGYzZmYiIHN0cm9rZT0iI2Y3MDBmZiIgc3Ryb2tlLXdpZHRoPSIwLjUiPgogICAgPGFuaW1hdGUgYXR0cmlidXRlTmFtZT0iZmlsbCIgdmFsdWVzPSIjMDBmM2ZmOyNmNzAwZmY7IzAwZjNmZiIgZHVyPSIzcyIgcmVwZWF0Q291bnQ9ImluZGVmaW5pdGUiIC8+CiAgPC9wYXRoPgo8L3N2Zz4=" type="image/svg+xml">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
         
@@ -228,21 +229,789 @@
             opacity: 1;
         }
         
-        .game-bg {
+        .game-bg-canvas {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover;
             transition: all 0.5s;
-            opacity: 0.6;
+            opacity: 0.8;
+            z-index: 0;
+            background-color: rgba(13, 6, 31, 0.7);
+            overflow: hidden;
+            border-radius: 15px;
+        }
+        
+        .game-card:hover .game-bg-canvas {
+            transform: scale(1.1);
+            opacity: 0.9;
+        }
+        
+        /* Jogo da Velha */
+        .tic-tac-toe-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 5px;
+            width: 80%;
+            height: 80%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .tic-tac-toe-cell {
+            background: rgba(0, 243, 255, 0.2);
+            border: 2px solid rgba(0, 243, 255, 0.5);
+            border-radius: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 5px rgba(0, 243, 255, 0.3);
+        }
+        
+        .tic-tac-toe-x, .tic-tac-toe-o {
+            width: 70%;
+            height: 70%;
+            position: relative;
+        }
+        
+        .tic-tac-toe-x:before, .tic-tac-toe-x:after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 15%;
+            background: #00f3ff;
+            border-radius: 2px;
+            box-shadow: 0 0 8px #00f3ff;
+        }
+        
+        .tic-tac-toe-x:before {
+            transform: translate(-50%, -50%) rotate(45deg);
+        }
+        
+        .tic-tac-toe-x:after {
+            transform: translate(-50%, -50%) rotate(-45deg);
+        }
+        
+        .tic-tac-toe-o {
+            width: 70%;
+            height: 70%;
+            border: 4px solid #f700ff;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #f700ff;
+        }
+        
+        /* Jogo da Memória */
+        .memory-game-bg {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 10px;
+            padding: 10%;
+        }
+        
+        .memory-card {
+            background: linear-gradient(135deg, rgba(0, 243, 255, 0.3), rgba(247, 0, 255, 0.3));
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+            transition: all 0.3s;
+            transform-style: preserve-3d;
+            position: relative;
+            border: 2px solid rgba(0, 243, 255, 0.5);
+        }
+        
+        .memory-card:after {
+            content: '?';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #00f3ff;
+            font-size: 2em;
+            font-weight: bold;
+            text-shadow: 0 0 5px #00f3ff;
+        }
+        
+        .memory-match {
+            background: linear-gradient(135deg, rgba(0, 255, 0, 0.3), rgba(247, 0, 255, 0.3));
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.7);
+            transform: rotateY(180deg);
+            border: 2px solid rgba(0, 255, 0, 0.7);
+        }
+        
+        .memory-match:after {
+            content: '♦';
+            color: #00ff00;
+            text-shadow: 0 0 8px #00ff00;
+        }
+        
+        /* Snake */
+        .snake-board {
+            width: 80%;
+            height: 80%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 3px solid rgba(0, 243, 255, 0.6);
+            border-radius: 8px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.3) inset;
+        }
+        
+        .snake-segment {
+            width: 15px;
+            height: 15px;
+            background: #00f3ff;
+            border-radius: 3px;
+            position: absolute;
+            box-shadow: 0 0 8px #00f3ff;
+        }
+        
+        .snake-head {
+            background: #f700ff;
+            box-shadow: 0 0 12px #f700ff;
+        }
+        
+        .snake-food {
+            width: 12px;
+            height: 12px;
+            background: #ff0000;
+            border-radius: 50%;
+            position: absolute;
+            box-shadow: 0 0 12px #ff0000;
+        }
+        
+        .snake-segment:nth-child(1) { top: 30%; left: 30%; }
+        .snake-segment:nth-child(2) { top: 30%; left: 25%; }
+        .snake-segment:nth-child(3) { top: 30%; left: 20%; }
+        .snake-segment:nth-child(4) { top: 30%; left: 15%; }
+        .snake-food { top: 60%; left: 70%; }
+        
+        /* Pong */
+        .pong-bg {
+            background: rgba(0, 0, 0, 0.3);
+            border: 3px solid rgba(0, 243, 255, 0.6);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.3) inset;
+        }
+        
+        .pong-paddle {
+            width: 10px;
+            height: 60px;
+            background: #00f3ff;
+            border-radius: 5px;
+            position: absolute;
+            box-shadow: 0 0 10px #00f3ff;
+        }
+        
+        .pong-paddle-left {
+            left: 15%;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .pong-paddle-right {
+            right: 15%;
+            top: 30%;
+            transform: translateY(-50%);
+        }
+        
+        .pong-ball {
+            width: 15px;
+            height: 15px;
+            background: #f700ff;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 40%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 12px #f700ff;
+        }
+        
+        .pong-net {
+            width: 4px;
+            height: 100%;
+            position: absolute;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+            background: repeating-linear-gradient(to bottom, 
+                transparent 0%, transparent 40%, 
+                rgba(255, 255, 255, 0.5) 40%, rgba(255, 255, 255, 0.5) 60%);
+        }
+        
+        /* Flappy Bird */
+        .flappy-bg {
+            background: linear-gradient(to bottom, #00122b 0%, #006994 100%);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .flappy-bird {
+            width: 30px;
+            height: 24px;
+            background: #f700ff;
+            border-radius: 50% 50% 20% 20%;
+            position: absolute;
+            top: 40%;
+            left: 30%;
+            box-shadow: 0 0 12px #f700ff;
+        }
+        
+        .flappy-bird:after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #fff;
+            border-radius: 50%;
+            top: 20%;
+            right: 20%;
+            box-shadow: 0 0 5px #fff;
+        }
+        
+        .flappy-pipe {
+            width: 40px;
+            position: absolute;
+            background: #00f3ff;
+            box-shadow: 0 0 12px #00f3ff;
+        }
+        
+        .flappy-pipe-top {
+            height: 30%;
+            top: 0;
+            right: 20%;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .flappy-pipe-bottom {
+            height: 40%;
+            bottom: 0;
+            right: 20%;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .flappy-pipe-top-2 {
+            height: 40%;
+            top: 0;
+            right: 60%;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .flappy-pipe-bottom-2 {
+            height: 30%;
+            bottom: 0;
+            right: 60%;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        /* Quiz */
+        .quiz-bg {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10%;
+            position: relative;
+        }
+        
+        .quiz-question {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #00f3ff, #f700ff);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .quiz-options {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .quiz-option {
+            height: 30px;
+            background: rgba(0, 243, 255, 0.2);
+            border: 2px solid rgba(0, 243, 255, 0.5);
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+        }
+        
+        .quiz-option-selected {
+            background: rgba(0, 243, 255, 0.5);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.8);
+            border-color: rgba(0, 243, 255, 0.8);
+        }
+        
+        /* Clicker Game */
+        .clicker-bg {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .clicker-target {
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, rgba(247, 0, 255, 0.8), rgba(247, 0, 255, 0.2) 70%);
+            border-radius: 50%;
+            border: 3px solid #f700ff;
+            box-shadow: 0 0 20px #f700ff;
+            position: relative;
+            animation: pulse 2s infinite alternate;
+        }
+        
+        .clicker-points {
+            position: absolute;
+            top: 35%;
+            right: 30%;
+            color: #00ff00;
+            font-size: 1.5em;
+            font-weight: bold;
+            text-shadow: 0 0 8px #00ff00;
+            opacity: 0.9;
+        }
+        
+        .clicker-multiplier {
+            position: absolute;
+            bottom: 25%;
+            left: 30%;
+            color: #f700ff;
+            font-size: 1.8em;
+            font-weight: bold;
+            text-shadow: 0 0 8px #f700ff;
+        }
+        
+        .clicker-counter {
+            position: absolute;
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #00f3ff;
+            font-size: 2em;
+            font-weight: bold;
+            text-shadow: 0 0 8px #00f3ff;
+        }
+        
+        /* Platform Game */
+        .platform-bg {
+            background: linear-gradient(to bottom, #000428, #004e92);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .platform-character {
+            width: 25px;
+            height: 35px;
+            position: absolute;
+            left: 20%;
+            bottom: 40%;
+        }
+        
+        .platform-character-body {
+            width: 100%;
+            height: 100%;
+            background: #f700ff;
+            border-radius: 50% 50% 0 0;
+            position: relative;
+            box-shadow: 0 0 12px #f700ff;
+        }
+        
+        .platform-character-body:after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: white;
+            border-radius: 50%;
+            top: 20%;
+            left: 30%;
+            box-shadow: 10px 0 0 white;
+        }
+        
+        .platform-ground {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 20%;
+            background: rgba(0, 243, 255, 0.3);
+            border-top: 3px solid rgba(0, 243, 255, 0.8);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.3) inset;
+        }
+        
+        .platform-block {
+            position: absolute;
+            height: 15px;
+            background: rgba(0, 243, 255, 0.5);
+            border: 2px solid rgba(0, 243, 255, 0.8);
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+        }
+        
+        .platform-block-1 {
+            width: 80px;
+            left: 50%;
+            bottom: 40%;
+        }
+        
+        .platform-block-2 {
+            width: 100px;
+            right: 10%;
+            bottom: 60%;
+        }
+        
+        .platform-coin {
+            width: 15px;
+            height: 15px;
+            background: #ffdd00;
+            border-radius: 50%;
+            position: absolute;
+            box-shadow: 0 0 15px #ffdd00;
+        }
+        
+        .platform-coin-1 {
+            left: 60%;
+            bottom: 45%;
+        }
+        
+        .platform-coin-2 {
+            right: 20%;
+            bottom: 65%;
+        }
+        
+        .platform-enemy {
+            width: 25px;
+            height: 15px;
+            background: #ff0000;
+            border-radius: 5px;
+            position: absolute;
+            left: 75%;
+            bottom: 20%;
+            box-shadow: 0 0 12px #ff0000;
+        }
+        
+        /* Chess */
+        .chess-bg {
+            background: #222;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .chess-board {
+            width: 80%;
+            height: 80%;
+            background: repeating-conic-gradient(
+                #fff 0% 25%,
+                #333 0% 50%,
+                #fff 0% 75%,
+                #333 0% 100%
+            ) 0% 0% / 25% 25%;
+            border: 3px solid #00f3ff;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.5);
+            position: relative;
+        }
+        
+        .chess-piece {
+            position: absolute;
+            width: 15%;
+            height: 15%;
+        }
+        
+        .chess-king {
+            background: #f700ff;
+            clip-path: polygon(50% 0%, 35% 25%, 35% 60%, 0% 60%, 0% 75%, 100% 75%, 100% 60%, 65% 60%, 65% 25%);
+            top: 20%;
+            left: 20%;
+            box-shadow: 0 0 12px #f700ff;
+        }
+        
+        .chess-queen {
+            background: #f700ff;
+            clip-path: polygon(50% 0%, 25% 25%, 25% 60%, 0% 60%, 0% 75%, 100% 75%, 100% 60%, 75% 60%, 75% 25%);
+            top: 60%;
+            left: 30%;
+            box-shadow: 0 0 12px #f700ff;
+        }
+        
+        .chess-rook {
+            background: #00f3ff;
+            clip-path: polygon(0% 0%, 20% 0%, 20% 20%, 40% 20%, 40% 0%, 60% 0%, 60% 20%, 80% 20%, 80% 0%, 100% 0%, 100% 30%, 0% 30%);
+            top: 30%;
+            right: 40%;
+            box-shadow: 0 0 12px #00f3ff;
+        }
+        
+        .chess-bishop {
+            background: #00f3ff;
+            clip-path: polygon(50% 0%, 20% 100%, 80% 100%);
+            bottom: 30%;
+            right: 20%;
+            box-shadow: 0 0 12px #00f3ff;
+        }
+        
+        .chess-knight {
+            background: #00f3ff;
+            clip-path: polygon(0% 100%, 0% 40%, 40% 30%, 30% 0%, 60% 0%, 100% 30%, 100% 100%);
+            top: 50%;
+            left: 50%;
+            box-shadow: 0 0 12px #00f3ff;
+        }
+        
+        .chess-pawn {
+            background: #00f3ff;
+            clip-path: polygon(35% 50%, 35% 25%, 50% 0%, 65% 25%, 65% 50%, 90% 100%, 10% 100%);
+            bottom: 20%;
+            left: 10%;
+            box-shadow: 0 0 12px #00f3ff;
+        }
+        
+        /* Mario */
+        .mario-bg {
+            background: linear-gradient(to bottom, #5c94fc, #8cb0fc);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .mario-character {
+            width: 40px;
+            height: 40px;
+            position: absolute;
+            left: 30%;
+            bottom: 45%;
+            z-index: 2;
+        }
+        
+        .mario-cap {
+            width: 100%;
+            height: 30%;
+            background: #ff0000;
+            border-radius: 50% 50% 0 0;
+            position: absolute;
+            top: 0;
+            box-shadow: 0 0 8px #ff0000;
+        }
+        
+        .mario-face {
+            width: 90%;
+            height: 40%;
+            background: #ffb27f;
+            border-radius: 50% 50% 0 0;
+            position: absolute;
+            top: 25%;
+            left: 5%;
+        }
+        
+        .mario-face:after {
+            content: '';
+            position: absolute;
+            width: 40%;
+            height: 15%;
+            background: #000;
+            border-radius: 50%;
+            top: 40%;
+            left: 30%;
+        }
+        
+        .mario-body {
+            width: 100%;
+            height: 40%;
+            background: #ff0000;
+            position: absolute;
+            bottom: 0;
+            box-shadow: 0 0 8px #ff0000;
+        }
+        
+        .mario-brick {
+            position: absolute;
+            height: 20px;
+            background: #cc7f33;
+            border: 2px solid #8c5700;
+            box-shadow: 0 0 8px rgba(204, 127, 51, 0.7);
+        }
+        
+        .mario-brick-1 {
+            width: 40px;
+            left: 20%;
+            bottom: 30%;
+        }
+        
+        .mario-brick-2 {
+            width: 40px;
+            left: 60%;
+            bottom: 40%;
+        }
+        
+        .mario-brick-3 {
+            width: 40px;
+            left: 75%;
+            bottom: 60%;
+        }
+        
+        .mario-coin {
+            width: 20px;
+            height: 20px;
+            background: #ffdd00;
+            border-radius: 50%;
+            position: absolute;
+            right: 25%;
+            bottom: 65%;
+            box-shadow: 0 0 15px #ffdd00;
+            animation: pulse 1.5s infinite alternate;
+        }
+        
+        .mario-pipe {
+            width: 40px;
+            height: 60px;
+            background: #00a800;
+            position: absolute;
+            right: 15%;
+            bottom: 20%;
+            border-radius: 5px 5px 0 0;
+            border-top: 5px solid #00d800;
+            border-left: 5px solid #00d800;
+            box-shadow: 0 0 12px #00a800;
+        }
+        
+        .mario-enemy {
+            width: 30px;
+            height: 25px;
+            background: #8c4400;
+            border-radius: 50% 50% 0 0;
+            position: absolute;
+            left: 70%;
+            bottom: 20%;
+            box-shadow: 0 0 12px #8c4400;
+        }
+        
+        /* Doom */
+        .doom-bg {
+            background: #300;
+            perspective: 500px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .doom-weapon {
+            width: 60%;
+            height: 40%;
+            background: #777;
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%) rotateX(30deg);
+            clip-path: polygon(40% 100%, 60% 100%, 55% 70%, 70% 60%, 70% 40%, 30% 40%, 30% 60%, 45% 70%);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+            z-index: 10;
+        }
+        
+        .doom-enemy {
+            position: absolute;
+            width: 40px;
+            height: 60px;
+            background: #f00;
+            clip-path: polygon(20% 0%, 80% 0%, 100% 30%, 100% 100%, 60% 100%, 60% 70%, 40% 70%, 40% 100%, 0% 100%, 0% 30%);
+            box-shadow: 0 0 15px #f00;
+        }
+        
+        .doom-enemy-1 {
+            left: 30%;
+            top: 40%;
+            transform: scale(0.6) rotateY(-15deg);
+            z-index: 5;
+        }
+        
+        .doom-enemy-2 {
+            right: 30%;
+            top: 45%;
+            transform: scale(0.5) rotateY(15deg);
+            z-index: 5;
+        }
+        
+        .doom-wall {
+            position: absolute;
+            height: 80%;
+            background: #630;
+            border: 2px solid #520;
+            box-shadow: 0 0 15px rgba(102, 51, 0, 0.5);
+        }
+        
+        .doom-wall-1 {
+            width: 30%;
+            left: 0;
+            top: 10%;
+            transform: rotateY(70deg);
+            z-index: 1;
+        }
+        
+        .doom-wall-2 {
+            width: 30%;
+            right: 0;
+            top: 10%;
+            transform: rotateY(-70deg);
+            z-index: 1;
+        }
+        
+        .doom-floor {
+            position: absolute;
+            width: 100%;
+            height: 50%;
+            bottom: 0;
+            background: linear-gradient(to bottom, #630, #520);
+            transform: rotateX(60deg);
+            transform-origin: bottom;
+            z-index: 0;
+            box-shadow: 0 0 20px rgba(102, 51, 0, 0.5) inset;
+        }
+        
+        .doom-ceiling {
+            position: absolute;
+            width: 100%;
+            height: 50%;
+            top: 0;
+            background: #300;
+            transform: rotateX(-60deg);
+            transform-origin: top;
             z-index: 0;
         }
         
-        .game-card:hover .game-bg {
-            transform: scale(1.1);
-            opacity: 0.8;
+        .doom-bullet {
+            position: absolute;
+            width: 5px;
+            height: 20px;
+            background: #ff0;
+            left: 50%;
+            top: 50%;
+            transform: translateY(-100px);
+            box-shadow: 0 0 15px #ff0;
+            z-index: 6;
         }
         
         footer {
@@ -505,7 +1274,19 @@
         <div class="games-grid">
             <!-- Jogo da Velha -->
             <div class="game-card" data-category="classicos">
-                <img src="https://i.imgur.com/ZXRFzd4.png" alt="Jogo da Velha" class="game-bg">
+                <div class="game-bg-canvas tic-tac-toe-bg">
+                    <div class="tic-tac-toe-grid">
+                        <div class="tic-tac-toe-cell"><div class="tic-tac-toe-x"></div></div>
+                        <div class="tic-tac-toe-cell"><div class="tic-tac-toe-o"></div></div>
+                        <div class="tic-tac-toe-cell"></div>
+                        <div class="tic-tac-toe-cell"></div>
+                        <div class="tic-tac-toe-cell"><div class="tic-tac-toe-x"></div></div>
+                        <div class="tic-tac-toe-cell"></div>
+                        <div class="tic-tac-toe-cell"><div class="tic-tac-toe-o"></div></div>
+                        <div class="tic-tac-toe-cell"></div>
+                        <div class="tic-tac-toe-cell"><div class="tic-tac-toe-x"></div></div>
+                    </div>
+                </div>
                 <div class="game-card-content">
                     <h3 class="game-title">Jogo da Velha</h3>
                     <p class="game-desc">Desafie seus amigos ou a IA neste clássico jogo de estratégia. Quem conseguirá formar a linha primeiro?</p>
@@ -516,7 +1297,14 @@
             
             <!-- Jogo da Memória -->
             <div class="game-card" data-category="classicos">
-                <img src="https://i.imgur.com/vLIQYWb.png" alt="Jogo da Memória" class="game-bg">
+                <div class="game-bg-canvas memory-game-bg">
+                    <div class="memory-card memory-card-1"></div>
+                    <div class="memory-card memory-card-2 memory-match"></div>
+                    <div class="memory-card memory-card-3"></div>
+                    <div class="memory-card memory-card-4"></div>
+                    <div class="memory-card memory-card-5"></div>
+                    <div class="memory-card memory-card-2 memory-match"></div>
+                </div>
                 <div class="game-card-content">
                     <h3 class="game-title">Jogo da Memória</h3>
                     <p class="game-desc">Teste sua memória encontrando os pares correspondentes. Quanto mais rápido, maior sua pontuação!</p>
@@ -527,7 +1315,15 @@
             
             <!-- Snake (Cobrinha) -->
             <div class="game-card" data-category="arcade">
-                <img src="https://i.imgur.com/8lIBvbA.png" alt="Snake (Cobrinha)" class="game-bg">
+                <div class="game-bg-canvas snake-bg">
+                    <div class="snake-board">
+                        <div class="snake-segment snake-head"></div>
+                        <div class="snake-segment"></div>
+                        <div class="snake-segment"></div>
+                        <div class="snake-segment"></div>
+                        <div class="snake-food"></div>
+                    </div>
+                </div>
                 <div class="game-card-content">
                     <h3 class="game-title">Snake (Cobrinha)</h3>
                     <p class="game-desc">Controle a cobrinha, colete comida e cresça sem colidir consigo mesma. Um clássico que nunca sai de moda!</p>
@@ -538,7 +1334,12 @@
             
             <!-- Pong -->
             <div class="game-card" data-category="arcade">
-                <img src="https://i.imgur.com/4BRZBLU.png" alt="Pong" class="game-bg">
+                <div class="game-bg-canvas pong-bg">
+                    <div class="pong-paddle pong-paddle-left"></div>
+                    <div class="pong-ball"></div>
+                    <div class="pong-paddle pong-paddle-right"></div>
+                    <div class="pong-net"></div>
+                </div>
                 <div class="game-card-content">
                     <h3 class="game-title">Pong</h3>
                     <p class="game-desc">O primeiro videogame da história agora em uma versão moderna e futurista. Teste seus reflexos!</p>
@@ -549,7 +1350,13 @@
             
             <!-- Flappy Bird Clone -->
             <div class="game-card" data-category="arcade">
-                <img src="https://i.imgur.com/W9JMl1R.png" alt="Flappy Bird Clone" class="game-bg">
+                <div class="game-bg-canvas flappy-bg">
+                    <div class="flappy-bird"></div>
+                    <div class="flappy-pipe flappy-pipe-top"></div>
+                    <div class="flappy-pipe flappy-pipe-bottom"></div>
+                    <div class="flappy-pipe flappy-pipe-top-2"></div>
+                    <div class="flappy-pipe flappy-pipe-bottom-2"></div>
+                </div>
                 <div class="game-card-content">
                     <h3 class="game-title">Flappy Bird</h3>
                     <p class="game-desc">Controle o pássaro entre os obstáculos. Parece fácil, mas é surpreendentemente desafiador!</p>
@@ -560,7 +1367,15 @@
             
             <!-- Quiz de Perguntas -->
             <div class="game-card" data-category="estrategia">
-                <img src="https://i.imgur.com/P2IGFN1.png" alt="Quiz de Perguntas" class="game-bg">
+                <div class="game-bg-canvas quiz-bg">
+                    <div class="quiz-question">?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option"></div>
+                        <div class="quiz-option quiz-option-selected"></div>
+                        <div class="quiz-option"></div>
+                        <div class="quiz-option"></div>
+                    </div>
+                </div>
                 <div class="game-card-content">
                     <h3 class="game-title">Quiz de Perguntas</h3>
                     <p class="game-desc">Teste seu conhecimento em diversas categorias com este quiz interativo e desafiador.</p>
@@ -571,7 +1386,12 @@
             
             <!-- Jogo de Clique (Clicker Game) -->
             <div class="game-card" data-category="acao">
-                <img src="https://i.imgur.com/KXKdHJg.png" alt="Jogo de Clique" class="game-bg">
+                <div class="game-bg-canvas clicker-bg">
+                    <div class="clicker-target"></div>
+                    <div class="clicker-points">+1</div>
+                    <div class="clicker-multiplier">x2</div>
+                    <div class="clicker-counter">1,337</div>
+                </div>
                 <div class="game-card-content">
                     <h3 class="game-title">Clicker Game</h3>
                     <p class="game-desc">Clique, obtenha recursos, desbloqueie melhorias e veja seu império crescer neste jogo viciante.</p>
@@ -582,7 +1402,17 @@
             
             <!-- Jogo de Plataforma 2D Simples -->
             <div class="game-card" data-category="acao">
-                <img src="https://i.imgur.com/VVK9SOS.png" alt="Jogo de Plataforma 2D" class="game-bg">
+                <div class="game-bg-canvas platform-bg">
+                    <div class="platform-character">
+                        <div class="platform-character-body"></div>
+                    </div>
+                    <div class="platform-ground"></div>
+                    <div class="platform-block platform-block-1"></div>
+                    <div class="platform-block platform-block-2"></div>
+                    <div class="platform-coin platform-coin-1"></div>
+                    <div class="platform-coin platform-coin-2"></div>
+                    <div class="platform-enemy"></div>
+                </div>
                 <div class="game-card-content">
                     <h3 class="game-title">Plataforma 2D</h3>
                     <p class="game-desc">Salte entre plataformas, colete moedas e evite inimigos nesta aventura 2D cheia de desafios.</p>
@@ -593,7 +1423,16 @@
             
             <!-- Xadrez -->
             <div class="game-card" data-category="estrategia">
-                <img src="https://i.imgur.com/N3NUUGc.png" alt="Xadrez" class="game-bg">
+                <div class="game-bg-canvas chess-bg">
+                    <div class="chess-board">
+                        <div class="chess-piece chess-king"></div>
+                        <div class="chess-piece chess-queen"></div>
+                        <div class="chess-piece chess-rook"></div>
+                        <div class="chess-piece chess-bishop"></div>
+                        <div class="chess-piece chess-knight"></div>
+                        <div class="chess-piece chess-pawn"></div>
+                    </div>
+                </div>
                 <div class="game-card-content">
                     <h3 class="game-title">Xadrez</h3>
                     <p class="game-desc">O clássico jogo de estratégia em uma versão moderna. Teste sua habilidade contra a IA ou outro jogador.</p>
@@ -604,7 +1443,19 @@
             
             <!-- Mario Bros -->
             <div class="game-card" data-category="arcade">
-                <img src="https://i.imgur.com/QVCIoHw.png" alt="Mario Bros" class="game-bg">
+                <div class="game-bg-canvas mario-bg">
+                    <div class="mario-character">
+                        <div class="mario-cap"></div>
+                        <div class="mario-face"></div>
+                        <div class="mario-body"></div>
+                    </div>
+                    <div class="mario-brick mario-brick-1"></div>
+                    <div class="mario-brick mario-brick-2"></div>
+                    <div class="mario-brick mario-brick-3"></div>
+                    <div class="mario-coin"></div>
+                    <div class="mario-pipe"></div>
+                    <div class="mario-enemy"></div>
+                </div>
                 <div class="game-card-content">
                     <h3 class="game-title">Mario Bros</h3>
                     <p class="game-desc">Entre no mundo do encanador mais famoso dos videogames! Salte sobre inimigos, colete moedas e salve a princesa.</p>
@@ -615,7 +1466,16 @@
             
             <!-- Doom -->
             <div class="game-card" data-category="acao">
-                <img src="https://i.imgur.com/Vbj6ced.png" alt="Doom" class="game-bg">
+                <div class="game-bg-canvas doom-bg">
+                    <div class="doom-weapon"></div>
+                    <div class="doom-enemy doom-enemy-1"></div>
+                    <div class="doom-enemy doom-enemy-2"></div>
+                    <div class="doom-wall doom-wall-1"></div>
+                    <div class="doom-wall doom-wall-2"></div>
+                    <div class="doom-floor"></div>
+                    <div class="doom-ceiling"></div>
+                    <div class="doom-bullet"></div>
+                </div>
                 <div class="game-card-content">
                     <h3 class="game-title">Doom</h3>
                     <p class="game-desc">Uma versão simplificada do clássico FPS que revolucionou os jogos. Prepare-se para enfrentar demônios!</p>
