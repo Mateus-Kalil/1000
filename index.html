@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MKGAMES - Portal de Jogos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #00f3ff;
+            --secondary: #f700ff;
+            --bg-dark: #030014;
+            --bg-card: rgba(13, 6, 31, 0.7);
+            --text: #ffffff;
+            --glow-strong: 0 0 10px rgba(0, 243, 255, 0.8), 0 0 20px rgba(0, 243, 255, 0.4);
+            --glow-soft: 0 0 15px rgba(247, 0, 255, 0.4);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            min-height: 100%;
+        }
+        
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text);
+            overflow-x: hidden;
+            position: relative;
+            padding-bottom: 80px; /* Espaço para o rodapé */
+            min-height: 100vh;
+        }
+        
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        header {
+            padding: 1.5rem 2rem;
+            position: relative;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+        }
+        
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            font-weight: 800;
+            text-align: center;
+            letter-spacing: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: var(--glow-soft);
+            margin-bottom: 0.5rem;
+            position: relative;
+            animation: pulse 2s infinite alternate;
+        }
+        
+        .logo::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), var(--secondary), transparent);
+        }
+        
+        .tagline {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.8;
+        }
+        
+        main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            z-index: 1;
+            position: relative;
+        }
+        
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .game-card {
+            position: relative;
+            height: 300px;
+            border-radius: 15px;
+            overflow: hidden;
+            background: var(--bg-card);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            transform-style: preserve-3d;
+            perspective: 1000px;
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .game-card:hover {
+            transform: translateY(-10px) rotateX(5deg) rotateY(5deg);
+            box-shadow: var(--glow-strong);
+            border-color: var(--primary);
+        }
+        
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.8));
+            z-index: 1;
+        }
+        
+        .game-card-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 2rem;
+            z-index: 2;
+            transform: translateZ(20px);
+            transition: transform 0.5s;
+        }
+        
+        .game-card:hover .game-card-content {
+            transform: translateZ(40px);
+        }
+        
+        .game-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+            text-shadow: 0 0 5px rgba(0, 243, 255, 0.5);
+        }
+        
+        .game-desc {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 1rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+        
+        .game-card:hover .game-desc {
+            max-height: 100px;
+        }
+        
+        .play-btn {
+            display: inline-block;
+            padding: 0.5rem 1.2rem;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 20px;
+            color: var(--bg-dark);
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+        }
+        
+        .play-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: all 0.5s;
+        }
+        
+        .play-btn:hover::before {
+            left: 100%;
+        }
+        
+        .play-btn:hover {
+            box-shadow: 0 0 10px var(--primary), 0 0 20px var(--secondary);
+            transform: scale(1.05);
+        }
+        
+        .game-icon {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 2rem;
+            color: var(--primary);
+            z-index: 2;
+            opacity: 0.7;
+            transition: all 0.3s;
+            text-shadow: var(--glow-strong);
+        }
+        
+        .game-card:hover .game-icon {
+            transform: rotate(10deg) scale(1.2);
+            opacity: 1;
+        }
+        
+        .game-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: all 0.5s;
+            opacity: 0.6;
+            z-index: 0;
+        }
+        
+        .game-card:hover .game-bg {
+            transform: scale(1.1);
+            opacity: 0.8;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem;
+            backdrop-filter: blur(5px);
+            background-color: rgba(3, 0, 20, 0.5);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+        }
+        
+        .signature {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+            position: relative;
+        }
+        
+        .signature::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+        
+        @keyframes pulse {
+            0% {
+                text-shadow: 0 0 5px rgba(0, 243, 255, 0.5);
+            }
+            100% {
+                text-shadow: 0 0 15px rgba(0, 243, 255, 1), 0 0 30px rgba(247, 0, 255, 0.8);
+            }
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+            100% {
+                transform: translateY(0px);
+            }
+        }
+        
+        .glitch-effect {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .glitch-effect::before,
+        .glitch-effect::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .glitch-effect::before {
+            left: 2px;
+            text-shadow: -2px 0 var(--secondary);
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim-1 5s infinite linear alternate-reverse;
+        }
+        
+        .glitch-effect::after {
+            left: -2px;
+            text-shadow: -2px 0 var(--primary);
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim-2 5s infinite linear alternate-reverse;
+        }
+        
+        @keyframes glitch-anim-1 {
+            0% {
+                clip: rect(25px, 9999px, 29px, 0);
+            }
+            10% {
+                clip: rect(35px, 9999px, 99px, 0);
+            }
+            20% {
+                clip: rect(76px, 9999px, 78px, 0);
+            }
+            30% {
+                clip: rect(82px, 9999px, 81px, 0);
+            }
+            40% {
+                clip: rect(53px, 9999px, 14px, 0);
+            }
+            50% {
+                clip: rect(38px, 9999px, 42px, 0);
+            }
+            60% {
+                clip: rect(11px, 9999px, 59px, 0);
+            }
+            70% {
+                clip: rect(40px, 9999px, 31px, 0);
+            }
+            80% {
+                clip: rect(23px, 9999px, 50px, 0);
+            }
+            90% {
+                clip: rect(18px, 9999px, 56px, 0);
+            }
+            100% {
+                clip: rect(94px, 9999px, 99px, 0);
+            }
+        }
+        
+        @keyframes glitch-anim-2 {
+            0% {
+                clip: rect(39px, 9999px, 13px, 0);
+            }
+            10% {
+                clip: rect(79px, 9999px, 36px, 0);
+            }
+            20% {
+                clip: rect(39px, 9999px, 42px, 0);
+            }
+            30% {
+                clip: rect(74px, 9999px, 15px, 0);
+            }
+            40% {
+                clip: rect(16px, 9999px, 72px, 0);
+            }
+            50% {
+                clip: rect(31px, 9999px, 26px, 0);
+            }
+            60% {
+                clip: rect(95px, 9999px, 5px, 0);
+            }
+            70% {
+                clip: rect(94px, 9999px, 85px, 0);
+            }
+            80% {
+                clip: rect(87px, 9999px, 77px, 0);
+            }
+            90% {
+                clip: rect(28px, 9999px, 40px, 0);
+            }
+            100% {
+                clip: rect(100px, 9999px, 100px, 0);
+            }
+        }
+        
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 2.2rem;
+            }
+            
+            .games-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 1.5rem;
+            }
+            
+            .game-card {
+                height: 250px;
+            }
+            
+            .game-card-content {
+                padding: 1.5rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .logo {
+                font-size: 1.8rem;
+            }
+            
+            main {
+                padding: 1rem;
+            }
+            
+            .games-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Barra de navegação */
+        nav {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+        
+        .nav-btn {
+            background: transparent;
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            color: var(--text);
+            padding: 0.5rem 1rem;
+            margin: 0 0.5rem;
+            border-radius: 20px;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 243, 255, 0.2), transparent);
+            transition: all 0.5s;
+        }
+        
+        .nav-btn:hover::before {
+            left: 100%;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(0, 243, 255, 0.1);
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+        }
+        
+        .nav-btn.active {
+            background: linear-gradient(90deg, rgba(0, 243, 255, 0.2), rgba(247, 0, 255, 0.2));
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    
+    <header>
+        <h1 class="logo">
+            <span class="glitch-effect" data-text="MKGAMES">MKGAMES</span>
+        </h1>
+        <p class="tagline">Sua jornada por experiências de jogo extraordinárias</p>
+    </header>
+    
+    <nav>
+        <button class="nav-btn active" data-filter="all">Todos os Jogos</button>
+        <button class="nav-btn" data-filter="classicos">Clássicos</button>
+        <button class="nav-btn" data-filter="arcade">Arcade</button>
+        <button class="nav-btn" data-filter="estrategia">Estratégia</button>
+        <button class="nav-btn" data-filter="acao">Ação</button>
+    </nav>
+    
+    <main>
+        <div class="games-grid">
+            <!-- Jogo da Velha -->
+            <div class="game-card" data-category="classicos">
+                <img src="https://i.imgur.com/ZXRFzd4.png" alt="Jogo da Velha" class="game-bg">
+                <div class="game-card-content">
+                    <h3 class="game-title">Jogo da Velha</h3>
+                    <p class="game-desc">Desafie seus amigos ou a IA neste clássico jogo de estratégia. Quem conseguirá formar a linha primeiro?</p>
+                    <a href="index1.html" class="play-btn">Jogar agora</a>
+                </div>
+                <i class="fas fa-hashtag game-icon"></i>
+            </div>
+            
+            <!-- Jogo da Memória -->
+            <div class="game-card" data-category="classicos">
+                <img src="https://i.imgur.com/vLIQYWb.png" alt="Jogo da Memória" class="game-bg">
+                <div class="game-card-content">
+                    <h3 class="game-title">Jogo da Memória</h3>
+                    <p class="game-desc">Teste sua memória encontrando os pares correspondentes. Quanto mais rápido, maior sua pontuação!</p>
+                    <a href="index2.html" class="play-btn">Jogar agora</a>
+                </div>
+                <i class="fas fa-brain game-icon"></i>
+            </div>
+            
+            <!-- Snake (Cobrinha) -->
+            <div class="game-card" data-category="arcade">
+                <img src="https://i.imgur.com/8lIBvbA.png" alt="Snake (Cobrinha)" class="game-bg">
+                <div class="game-card-content">
+                    <h3 class="game-title">Snake (Cobrinha)</h3>
+                    <p class="game-desc">Controle a cobrinha, colete comida e cresça sem colidir consigo mesma. Um clássico que nunca sai de moda!</p>
+                    <a href="index3.html" class="play-btn">Jogar agora</a>
+                </div>
+                <i class="fas fa-snake game-icon"></i>
+            </div>
+            
+            <!-- Pong -->
+            <div class="game-card" data-category="arcade">
+                <img src="https://i.imgur.com/4BRZBLU.png" alt="Pong" class="game-bg">
+                <div class="game-card-content">
+                    <h3 class="game-title">Pong</h3>
+                    <p class="game-desc">O primeiro videogame da história agora em uma versão moderna e futurista. Teste seus reflexos!</p>
+                    <a href="index4.html" class="play-btn">Jogar agora</a>
+                </div>
+                <i class="fas fa-table-tennis game-icon"></i>
+            </div>
+            
+            <!-- Flappy Bird Clone -->
+            <div class="game-card" data-category="arcade">
+                <img src="https://i.imgur.com/W9JMl1R.png" alt="Flappy Bird Clone" class="game-bg">
+                <div class="game-card-content">
+                    <h3 class="game-title">Flappy Bird</h3>
+                    <p class="game-desc">Controle o pássaro entre os obstáculos. Parece fácil, mas é surpreendentemente desafiador!</p>
+                    <a href="index5.html" class="play-btn">Jogar agora</a>
+                </div>
+                <i class="fas fa-dove game-icon"></i>
+            </div>
+            
+            <!-- Quiz de Perguntas -->
+            <div class="game-card" data-category="estrategia">
+                <img src="https://i.imgur.com/P2IGFN1.png" alt="Quiz de Perguntas" class="game-bg">
+                <div class="game-card-content">
+                    <h3 class="game-title">Quiz de Perguntas</h3>
+                    <p class="game-desc">Teste seu conhecimento em diversas categorias com este quiz interativo e desafiador.</p>
+                    <a href="index6.html" class="play-btn">Jogar agora</a>
+                </div>
+                <i class="fas fa-question-circle game-icon"></i>
+            </div>
+            
+            <!-- Jogo de Clique (Clicker Game) -->
+            <div class="game-card" data-category="acao">
+                <img src="https://i.imgur.com/KXKdHJg.png" alt="Jogo de Clique" class="game-bg">
+                <div class="game-card-content">
+                    <h3 class="game-title">Clicker Game</h3>
+                    <p class="game-desc">Clique, obtenha recursos, desbloqueie melhorias e veja seu império crescer neste jogo viciante.</p>
+                    <a href="index7.html" class="play-btn">Jogar agora</a>
+                </div>
+                <i class="fas fa-mouse-pointer game-icon"></i>
+            </div>
+            
+            <!-- Jogo de Plataforma 2D Simples -->
+            <div class="game-card" data-category="acao">
+                <img src="https://i.imgur.com/VVK9SOS.png" alt="Jogo de Plataforma 2D" class="game-bg">
+                <div class="game-card-content">
+                    <h3 class="game-title">Plataforma 2D</h3>
+                    <p class="game-desc">Salte entre plataformas, colete moedas e evite inimigos nesta aventura 2D cheia de desafios.</p>
+                    <a href="index8.html" class="play-btn">Jogar agora</a>
+                </div>
+                <i class="fas fa-running game-icon"></i>
+            </div>
+            
+            <!-- Xadrez -->
+            <div class="game-card" data-category="estrategia">
+                <img src="https://i.imgur.com/N3NUUGc.png" alt="Xadrez" class="game-bg">
+                <div class="game-card-content">
+                    <h3 class="game-title">Xadrez</h3>
+                    <p class="game-desc">O clássico jogo de estratégia em uma versão moderna. Teste sua habilidade contra a IA ou outro jogador.</p>
+                    <a href="index9.html" class="play-btn">Jogar agora</a>
+                </div>
+                <i class="fas fa-chess-king game-icon"></i>
+            </div>
+            
+            <!-- Mario Bros -->
+            <div class="game-card" data-category="arcade">
+                <img src="https://i.imgur.com/QVCIoHw.png" alt="Mario Bros" class="game-bg">
+                <div class="game-card-content">
+                    <h3 class="game-title">Mario Bros</h3>
+                    <p class="game-desc">Entre no mundo do encanador mais famoso dos videogames! Salte sobre inimigos, colete moedas e salve a princesa.</p>
+                    <a href="index10.html" class="play-btn">Jogar agora</a>
+                </div>
+                <i class="fas fa-mushroom game-icon"></i>
+            </div>
+            
+            <!-- Doom -->
+            <div class="game-card" data-category="acao">
+                <img src="https://i.imgur.com/Vbj6ced.png" alt="Doom" class="game-bg">
+                <div class="game-card-content">
+                    <h3 class="game-title">Doom</h3>
+                    <p class="game-desc">Uma versão simplificada do clássico FPS que revolucionou os jogos. Prepare-se para enfrentar demônios!</p>
+                    <a href="index11.html" class="play-btn">Jogar agora</a>
+                </div>
+                <i class="fas fa-skull game-icon"></i>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <p class="signature">MKalil &copy; 2025</p>
+    </footer>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Three.js setup para efeito de fundo futurista
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        
+        // Partículas
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 1500;
+        
+        const posArray = new Float32Array(particlesCount * 3);
+        const colorsArray = new Float32Array(particlesCount * 3);
+        
+        for(let i = 0; i < particlesCount * 3; i++) {
+            // Posição
+            posArray[i] = (Math.random() - 0.5) * 15;
+            
+            // Cores - gradiente do azul ao rosa
+            if (i % 3 === 0) { // R
+                colorsArray[i] = Math.random() * 0.3;
+            } else if (i % 3 === 1) { // G
+                colorsArray[i] = Math.random() * 0.5;
+            } else { // B
+                colorsArray[i] = Math.random() * 0.5 + 0.5;
+            }
+        }
+        
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colorsArray, 3));
+        
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.02,
+            transparent: true,
+            opacity: 0.8,
+            vertexColors: true,
+            blending: THREE.AdditiveBlending
+        });
+        
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+        
+        // Grade de linhas
+        const gridHelper = new THREE.GridHelper(20, 20, 0x00f3ff, 0xf700ff);
+        gridHelper.position.y = -3;
+        scene.add(gridHelper);
+        
+        // Posição da câmera
+        camera.position.z = 6;
+        camera.position.y = 0.5;
+        camera.rotation.x = -0.2;
+        
+        // Luzes
+        const pointLight1 = new THREE.PointLight(0x00f3ff, 1);
+        pointLight1.position.set(5, 5, 5);
+        scene.add(pointLight1);
+        
+        const pointLight2 = new THREE.PointLight(0xf700ff, 1);
+        pointLight2.position.set(-5, -5, 5);
+        scene.add(pointLight2);
+        
+        // Mouse tracking para interatividade
+        let mouseX = 0;
+        let mouseY = 0;
+        
+        document.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+            mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+        });
+        
+        // Função de animação
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Rotação suave da grade baseada na posição do mouse
+            gridHelper.rotation.y += 0.002;
+            
+            // Movimento das partículas
+            particlesMesh.rotation.y += 0.001;
+            particlesMesh.rotation.x = mouseY * 0.05;
+            particlesMesh.rotation.z = mouseX * 0.05;
+            
+            // Camera follow suave
+            camera.position.x += (mouseX * 0.5 - camera.position.x) * 0.05;
+            camera.position.y += (mouseY * 0.2 - camera.position.y) * 0.05;
+            
+            renderer.render(scene, camera);
+        }
+        
+        animate();
+        
+        // Redimensionar canvas quando a janela é redimensionada
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // Navegação - filtrar jogos por categoria
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Atualizar botão ativo
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Obter a categoria selecionada
+                const filter = this.getAttribute('data-filter');
+                
+                // Filtrar os jogos
+                document.querySelectorAll('.game-card').forEach(card => {
+                    // Se o filtro for 'all' ou se o card tiver a categoria selecionada
+                    if (filter === 'all' || card.getAttribute('data-category') === filter) {
+                        // Mostrar o card com animação
+                        card.style.display = 'block';
+                        setTimeout(() => {
+                            card.style.opacity = '1';
+                            card.style.transform = 'scale(1)';
+                        }, 50);
+                    } else {
+                        // Esconder o card com animação
+                        card.style.opacity = '0';
+                        card.style.transform = 'scale(0.8)';
+                        setTimeout(() => {
+                            card.style.display = 'none';
+                        }, 300);
+                    }
+                });
+            });
+        });
+        
+        // Animação ao passar o mouse sobre os cards
+        document.querySelectorAll('.game-card').forEach(card => {
+            card.addEventListener('mousemove', function(e) {
+                const rect = this.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const angleX = (y - centerY) / 20;
+                const angleY = (centerX - x) / 20;
+                
+                this.style.transform = `perspective(1000px) rotateX(${angleX}deg) rotateY(${angleY}deg) translateZ(10px)`;
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) translateZ(0)';
+            });
+        });
+    </script>
+</body>
+</html>
